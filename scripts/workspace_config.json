@@ -1,0 +1,329 @@
+{
+  "folders": [
+    {
+      "path": ".",
+      "name": "Video Genius"
+    }
+  ],
+  "settings": {
+    // === COPILOT CONFIGURATION ===
+    "github.copilot.enable": {
+      "*": true,
+      "yaml": true,
+      "plaintext": false,
+      "markdown": true,
+      "python": true,
+      "dockerfile": true,
+      "shellscript": true
+    },
+    "github.copilot.editor.enableAutoCompletions": true,
+    "github.copilot.chat.welcomeMessage": "first",
+    
+    // === PYTHON CONFIGURATION ===
+    "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
+    "python.languageServer": "Pylance",
+    "python.analysis.typeCheckingMode": "basic",
+    "python.analysis.autoImportCompletions": true,
+    "python.formatting.provider": "black",
+    "python.linting.enabled": true,
+    "python.linting.ruffEnabled": true,
+    "python.linting.mypyEnabled": true,
+    "python.testing.pytestEnabled": true,
+    "python.testing.unittestEnabled": false,
+    
+    // === EDITOR CONFIGURATION ===
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": "explicit",
+      "source.fixAll": "explicit"
+    },
+    "editor.rulers": [88, 120],
+    "editor.bracketPairColorization.enabled": true,
+    "editor.inlineSuggest.enabled": true,
+    "editor.quickSuggestions": {
+      "other": "on",
+      "comments": "on",
+      "strings": "on"
+    },
+    
+    // === FILES CONFIGURATION ===
+    "files.exclude": {
+      "**/__pycache__": true,
+      "**/.pytest_cache": true,
+      "**/.mypy_cache": true,
+      "**/.ruff_cache": true,
+      "**/*.pyc": true,
+      ".venv": true
+    },
+    "files.watcherExclude": {
+      "**/.venv/**": true,
+      "**/node_modules/**": true
+    },
+    "files.associations": {
+      "*.env.*": "dotenv",
+      "Dockerfile.*": "dockerfile"
+    },
+    
+    // === TERMINAL CONFIGURATION ===
+    "terminal.integrated.defaultProfile.linux": "bash",
+    "terminal.integrated.defaultProfile.osx": "zsh",
+    "terminal.integrated.fontSize": 13,
+    "terminal.integrated.cursorBlinking": true,
+    "terminal.integrated.commandsToSkipShell": [
+      "workbench.action.terminal.sendSequence"
+    ],
+    "terminal.integrated.env.linux": {
+      "PYTHONPATH": "${workspaceFolder}"
+    },
+    
+    // === GIT CONFIGURATION ===
+    "git.autofetch": true,
+    "git.confirmSync": false,
+    "git.enableSmartCommit": true,
+    "git.postCommitCommand": "none",
+    
+    // === DOCKER CONFIGURATION ===
+    "docker.dockerPath": "docker",
+    "docker.languageserver.diagnostics.deprecatedMaintainer": "warning",
+    
+    // === ERROR LENS ===
+    "errorLens.enabled": true,
+    "errorLens.enabledDiagnosticLevels": [
+      "error",
+      "warning"
+    ],
+    
+    // === TODO TREE ===
+    "todo-tree.general.tags": [
+      "BUG",
+      "HACK",
+      "FIXME",
+      "TODO",
+      "XXX",
+      "[ ]",
+      "[x]"
+    ],
+    "todo-tree.regex.regex": "(//|#|<!--|;|/\\*|^|^\\s*(-|\\d+.))\\s*($TAGS)",
+    
+    // === AUTO DOCSTRING ===
+    "autoDocstring.docstringFormat": "google",
+    "autoDocstring.startOnNewLine": false,
+    
+    // === RUFF ===
+    "ruff.args": [
+      "--config=${workspaceFolder}/pyproject.toml"
+    ],
+    
+    // === MISC ===
+    "[python]": {
+      "editor.defaultFormatter": "ms-python.black-formatter",
+      "editor.formatOnSave": true,
+      "editor.codeActionsOnSave": {
+        "source.organizeImports": "explicit"
+      }
+    },
+    "[json]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[yaml]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode"
+    }
+  },
+  "extensions": {
+    "recommendations": [
+      // === GITHUB & COPILOT ===
+      "github.copilot",
+      "github.copilot-chat",
+      "github.vscode-pull-request-github",
+      
+      // === PYTHON ===
+      "ms-python.python",
+      "ms-python.vscode-pylance",
+      "ms-python.black-formatter",
+      "charliermarsh.ruff",
+      "njpwerner.autodocstring",
+      "ms-python.debugpy",
+      
+      // === CLOUD & DEVOPS ===
+      "googlecloudtools.cloudcode",
+      "ms-azuretools.vscode-docker",
+      "ms-kubernetes-tools.vscode-kubernetes-tools",
+      "redhat.vscode-yaml",
+      
+      // === GIT ===
+      "eamodio.gitlens",
+      "mhutchie.git-graph",
+      "donjayamanne.githistory",
+      
+      // === PRODUCTIVITY ===
+      "usernamehw.errorlens",
+      "gruntfuggly.todo-tree",
+      "christian-kohler.path-intellisense",
+      "wayou.vscode-todo-highlight",
+      "oderwat.indent-rainbow",
+      
+      // === EDITOR ENHANCEMENT ===
+      "pkief.material-icon-theme",
+      "aaron-bond.better-comments",
+      "streetsidesoftware.code-spell-checker",
+      "mechatroner.rainbow-csv",
+      
+      // === TERMINAL ===
+      "jeff-hykin.better-shellscript-syntax"
+    ]
+  },
+  "launch": {
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "Python: FastAPI",
+        "type": "debugpy",
+        "request": "launch",
+        "module": "uvicorn",
+        "args": [
+          "backend.api.main:app",
+          "--reload",
+          "--host",
+          "0.0.0.0",
+          "--port",
+          "8080"
+        ],
+        "jinja": true,
+        "justMyCode": false,
+        "env": {
+          "PYTHONPATH": "${workspaceFolder}",
+          "ENV": "development"
+        }
+      },
+      {
+        "name": "Python: Current File",
+        "type": "debugpy",
+        "request": "launch",
+        "program": "${file}",
+        "console": "integratedTerminal",
+        "justMyCode": false,
+        "env": {
+          "PYTHONPATH": "${workspaceFolder}"
+        }
+      },
+      {
+        "name": "Python: Pytest Current File",
+        "type": "debugpy",
+        "request": "launch",
+        "module": "pytest",
+        "args": [
+          "${file}",
+          "-v",
+          "-s"
+        ],
+        "console": "integratedTerminal",
+        "justMyCode": false
+      },
+      {
+        "name": "Docker: Cloud Run Local",
+        "type": "docker",
+        "request": "launch",
+        "preLaunchTask": "docker-build-dev",
+        "python": {
+          "pathMappings": [
+            {
+              "localRoot": "${workspaceFolder}",
+              "remoteRoot": "/app"
+            }
+          ],
+          "projectType": "fastapi"
+        }
+      }
+    ]
+  },
+  "tasks": {
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "Setup: Complete Environment",
+        "type": "shell",
+        "command": "${workspaceFolder}/scripts/setup.sh",
+        "group": "none",
+        "presentation": {
+          "reveal": "always",
+          "panel": "dedicated"
+        },
+        "problemMatcher": []
+      },
+      {
+        "label": "GH: Authenticate",
+        "type": "shell",
+        "command": "gh auth login && gh auth refresh -s copilot",
+        "group": "none",
+        "problemMatcher": []
+      },
+      {
+        "label": "GH: Create PR (Quick)",
+        "type": "shell",
+        "command": "gh pr create --fill --web",
+        "group": "none",
+        "problemMatcher": []
+      },
+      {
+        "label": "GH: View PR Status",
+        "type": "shell",
+        "command": "gh pr status && gh pr checks",
+        "group": "none",
+        "presentation": {
+          "reveal": "always"
+        },
+        "problemMatcher": []
+      },
+      {
+        "label": "Docker: Build Development",
+        "type": "docker-build",
+        "dockerBuild": {
+          "dockerfile": "${workspaceFolder}/Dockerfile",
+          "context": "${workspaceFolder}",
+          "tag": "video-genius:dev",
+          "target": "development"
+        },
+        "group": "build"
+      },
+      {
+        "label": "Docker: Run Local",
+        "type": "shell",
+        "command": "docker run -p 8080:8080 --env-file .env.local video-genius:dev",
+        "group": "test",
+        "dependsOn": ["Docker: Build Development"],
+        "problemMatcher": []
+      },
+      {
+        "label": "Test: Run All",
+        "type": "shell",
+        "command": "pytest tests/ -v --cov=backend --cov-report=html",
+        "group": {
+          "kind": "test",
+          "isDefault": true
+        },
+        "problemMatcher": []
+      },
+      {
+        "label": "Lint: Check All",
+        "type": "shell",
+        "command": "ruff check . && mypy backend/",
+        "group": "test",
+        "problemMatcher": ["$ruff", "$mypy"]
+      },
+      {
+        "label": "Format: Fix All",
+        "type": "shell",
+        "command": "black backend/ tests/ && ruff check --fix .",
+        "group": "none",
+        "problemMatcher": []
+      },
+      {
+        "label": "Pre-commit: Run All Hooks",
+        "type": "shell",
+        "command": "pre-commit run --all-files",
+        "group": "test",
+        "problemMatcher": []
+      }
+    ]
+  }
+}
