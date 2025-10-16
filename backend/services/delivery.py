@@ -112,7 +112,12 @@ class DeliveryService:
         try:
             logger.info("Usando Application Default Credentials (ADC).")
             creds, _ = google.auth.default(scopes=SCOPES)
-            if creds and hasattr(creds, "refresh") and creds.expired and creds.refresh_token:
+            if (
+                creds
+                and hasattr(creds, "refresh")
+                and creds.expired
+                and creds.refresh_token
+            ):
                 creds.refresh(Request())
             return creds
         except Exception as e:
@@ -134,9 +139,12 @@ class DeliveryService:
             logger.info(f"Iniciando upload para o Drive na pasta '{folder_name}'")
             folder_id = await self._find_or_create_folder(folder_name)
 
-            file_metadata = {"name": os.path.basename(file_path), "parents": [folder_id]}
+            file_metadata = {
+                "name": os.path.basename(file_path),
+                "parents": [folder_id],
+            }
             media = MediaFileUpload(file_path, mimetype="video/mp4", resumable=True)
-            
+
             file = (
                 self.drive_service.files()
                 .create(body=file_metadata, media_body=media, fields="id, webViewLink")
@@ -145,7 +153,9 @@ class DeliveryService:
 
             file_id = file.get("id")
             web_view_link = file.get("webViewLink")
-            logger.info(f"Arquivo '{os.path.basename(file_path)}' enviado com ID: {file_id}")
+            logger.info(
+                f"Arquivo '{os.path.basename(file_path)}' enviado com ID: {file_id}"
+            )
 
             await self._share_file_with_user(file_id, user_email)
             return web_view_link
@@ -159,7 +169,9 @@ class DeliveryService:
     ):
         """Envia um e-mail de notificação com o link do vídeo."""
         if not self.gmail_service:
-            logger.error("Serviço do Gmail não inicializado. Envio de e-mail cancelado.")
+            logger.error(
+                "Serviço do Gmail não inicializado. Envio de e-mail cancelado."
+            )
             return
 
         if not to_email:
@@ -193,22 +205,35 @@ class DeliveryService:
             ).execute()
             logger.info(f"Arquivo {file_id} compartilhado com {user_email}.")
         except HttpError as error:
-            logger.error(f"Erro ao compartilhar arquivo {file_id} com {user_email}: {error}")
+            logger.error(
+                f"Erro ao compartilhar arquivo {file_id} com {user_email}: {error}"
+            )
 
     async def _find_or_create_folder(self, folder_name: str) -> str | None:
         """Encontra uma pasta no Drive com o nome especificado ou a cria."""
         try:
             query = f"mimeType='application/vnd.google-apps.folder' and name='{folder_name}' and trashed=false"
-            response = self.drive_service.files().list(q=query, spaces="drive", fields="files(id)").execute()
-            
+            response = (
+                self.drive_service.files()
+                .list(q=query, spaces="drive", fields="files(id)")
+                .execute()
+            )
+
             if files := response.get("files", []):
                 folder_id = files[0].get("id")
                 logger.info(f"Pasta '{folder_name}' encontrada com ID: {folder_id}")
                 return folder_id
-            
+
             logger.info(f"Pasta '{folder_name}' não encontrada. Criando...")
-            folder_metadata = {"name": folder_name, "mimeType": "application/vnd.google-apps.folder"}
-            folder = self.drive_service.files().create(body=folder_metadata, fields="id").execute()
+            folder_metadata = {
+                "name": folder_name,
+                "mimeType": "application/vnd.google-apps.folder",
+            }
+            folder = (
+                self.drive_service.files()
+                .create(body=folder_metadata, fields="id")
+                .execute()
+            )
             folder_id = folder.get("id")
             logger.info(f"Pasta '{folder_name}' criada com ID: {folder_id}")
             return folder_id

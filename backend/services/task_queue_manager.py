@@ -14,7 +14,9 @@ class TaskQueueManagerService:
     Gerencia a criação e o enfileiramento de tarefas no Google Cloud Tasks.
     """
 
-    def __init__(self, project_id: str, location: str, queue_name: str, worker_url: str):
+    def __init__(
+        self, project_id: str, location: str, queue_name: str, worker_url: str
+    ):
         """
         Inicializa o cliente do Cloud Tasks.
 
@@ -64,6 +66,8 @@ class TaskQueueManagerService:
         task["dispatch_deadline"] = dispatch_deadline
 
         response = self.client.create_task(parent=self.parent, task=task)
-        logger.info(f"Tarefa de renderização '{response.name}' enfileirada com sucesso.")
+        logger.info(
+            f"Tarefa de renderização '{response.name}' enfileirada com sucesso."
+        )
 
         return response.name

@@ -322,26 +322,26 @@ from functools import lru_cache
 
 class Settings(BaseSettings):
     """Application settings."""
-    
+
     # App
     ENV: str = "development"
     DEBUG: bool = True
     LOG_LEVEL: str = "INFO"
-    
+
     # API
     API_HOST: str = "0.0.0.0"
     API_PORT: int = 8080
-    
+
     # Google Cloud
     GOOGLE_PROJECT_ID: str
     VERTEX_AI_LOCATION: str = "us-central1"
     BIGQUERY_DATASET: str
     CLOUD_STORAGE_BUCKET: str
-    
+
     # Security
     JWT_SECRET_KEY: str
     JWT_ALGORITHM: str = "HS256"
-    
+
     class Config:
         env_file = ".env.local"
         case_sensitive = True

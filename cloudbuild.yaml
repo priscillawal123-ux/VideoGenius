@@ -1,0 +1,57 @@
+steps:
+  # Build the Docker image with BuildKit optimizations
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      - "build"
+      - "--build-arg"
+      - "BUILDKIT_INLINE_CACHE=1"
+      - "-t"
+      - "gcr.io/$PROJECT_ID/video-genius-api:$BUILD_ID"
+      - "-t"
+      - "gcr.io/$PROJECT_ID/video-genius-api:latest"
+      - "."
+
+  # Push the Docker image to Google Container Registry
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      - "push"
+      - "gcr.io/$PROJECT_ID/video-genius-api:$BUILD_ID"
+
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      - "push"
+      - "gcr.io/$PROJECT_ID/video-genius-api:latest"
+
+  # Deploy to Cloud Run with basic settings first
+  - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
+    entrypoint: gcloud
+    args:
+      - "run"
+      - "deploy"
+      - "video-genius-api"
+      - "--image"
+      - "gcr.io/$PROJECT_ID/video-genius-api:$BUILD_ID"
+      - "--region"
+      - "us-central1"
+      - "--platform"
+      - "managed"
+      - "--allow-unauthenticated"
+      - "--port"
+      - "8080"
+      - "--memory"
+      - "1Gi"
+      - "--cpu"
+      - "1"
+      - "--max-instances"
+      - "10"
+      - "--set-env-vars"
+      - "ENV=production,GCP_PROJECT_ID=$PROJECT_ID"
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+  machineType: "E2_HIGHCPU_8"
+
+# Store images in Google Container Registry
+images:
+  - "gcr.io/$PROJECT_ID/video-genius-api:$BUILD_ID"
+  - "gcr.io/$PROJECT_ID/video-genius-api:latest"

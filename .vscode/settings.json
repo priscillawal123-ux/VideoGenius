@@ -1,0 +1,13 @@
+{
+    "python.defaultInterpreterPath": "./.venv/bin/python",
+    "python.terminal.activateEnvironment": true,
+    "python-envs.pythonProjects": [
+        {
+            "path": "",
+            "envManager": "ms-python.python:venv",
+            "packageManager": "ms-python.python:pip",
+            "envPath": "./.venv"
+        }
+    ],
+    "git.ignoreLimitWarning": true
+}

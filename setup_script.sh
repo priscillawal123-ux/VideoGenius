@@ -33,56 +33,47 @@ command_exists() {
     command -v "$1" &> /dev/null
 }
 
-# Main setup function
-main() {
-    log_info "Starting Video Genius environment setup..."
-    echo ""
-    
-    # Step 1: Check prerequisites
-    check_prerequisites
-    
-    # Step 2: Setup GitHub CLI
-    setup_github_cli
-    
-    # Step 3: Setup Python environment
-    setup_python_environment
-    
-    # Step 4: Setup pre-commit hooks
-    setup_precommit_hooks
-    
-    # Step 5: Setup Google Cloud
-    setup_google_cloud
-    
-    # Step 6: Create environment files
-    create_environment_files
-    
-    # Step 7: Setup Docker
-    setup_docker
-    
-    # Step 8: Verify installation
-    verify_installation
-    
-    echo ""
-    log_success "🎉 Setup complete! You're ready to start developing."
-    print_next_steps
-}
+# Setup GitHub CLI
+setup_github_cli() {
+    log_info "Setting up GitHub CLI..."
 
-# Check prerequisites
-check_prerequisites() {
-    log_info "Checking prerequisites..."
-    
-    local missing_deps=()
-    
-    # Check Python
-    if ! command_exists python3; then
-        missing_deps+=("python3")
+    if ! command_exists gh; then
+        log_warning "GitHub CLI not found. Installing..."
+
+        # Detect OS and install accordingly
+        if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+            curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
+            sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg
+            echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+            sudo apt update
+            sudo apt install gh -y
+        elif [[ "$OSTYPE" == "darwin"* ]]; then
+            brew install gh
+        else
+            log_error "Unsupported OS. Please install GitHub CLI manually: https://cli.github.com/"
+            exit 1
+        fi
+
+        log_success "GitHub CLI installed"
+    else
+        log_success "GitHub CLI already installed"
+    fi
+
+    # Check authentication
+    if ! gh auth status &> /dev/null; then
+        log_info "Authenticating with GitHub..."
+        gh auth login
+
+        # Refresh token with required scopes
+        log_info "Requesting additional scopes..."
+        gh auth refresh -s copilot,workflow,write:packages
     else
         log_success "Already authenticated with GitHub"
     fi
-    
+
     # Install GitHub CLI extensions
     log_info "Installing GitHub CLI extensions..."
-    
+
     # Install Copilot extension
     if ! gh extension list | grep -q "gh-copilot"; then
         log_info "Installing gh-copilot extension..."
@@ -92,7 +83,7 @@ check_prerequisites() {
         log_success "gh-copilot already installed"
         gh extension upgrade gh-copilot
     fi
-    
+
     # Install other useful extensions
     local extensions=("dlvhdr/gh-dash" "seachicken/gh-poi")
     for ext in "${extensions[@]}"; do
@@ -102,7 +93,7 @@ check_prerequisites() {
             gh extension install "$ext" || log_warning "Failed to install $ext_name (optional)"
         fi
     done
-    
+
     # Setup useful aliases
     log_info "Setting up GitHub CLI aliases..."
     gh alias set prc 'pr create --fill' 2>/dev/null || true
@@ -111,14 +102,57 @@ check_prerequisites() {
     gh alias set bugs 'issue list --label bug' 2>/dev/null || true
     gh alias set ci 'pr checks' 2>/dev/null || true
     log_success "Aliases configured"
-    
+
+    echo ""
+}
+
+# Check prerequisites
+check_prerequisites() {
+    log_info "Checking prerequisites..."
+
+    local missing_deps=()
+
+    # Check Python
+    if ! command_exists python3; then
+        missing_deps+=("python3")
+    else
+        local python_version=$(python3 --version | cut -d' ' -f2)
+        log_success "Python $python_version found"
+    fi
+
+    # Check pip
+    if ! command_exists pip3; then
+        missing_deps+=("pip3")
+    fi
+
+    # Check git
+    if ! command_exists git; then
+        missing_deps+=("git")
+    else
+        log_success "Git found"
+    fi
+
+    # Check Docker
+    if ! command_exists docker; then
+        log_warning "Docker not found - optional but recommended"
+    else
+        log_success "Docker found"
+    fi
+
+    # Check if any critical dependencies are missing
+    if [ ${#missing_deps[@]} -ne 0 ]; then
+        log_error "Missing required dependencies: ${missing_deps[*]}"
+        log_info "Please install them and run setup again."
+        exit 1
+    fi
+
     echo ""
 }
 
 # Setup Python environment
 setup_python_environment() {
     log_info "Setting up Python environment..."
-    
+
     # Create virtual environment
     if [ ! -d ".venv" ]; then
         log_info "Creating virtual environment..."
@@ -127,14 +161,14 @@ setup_python_environment() {
     else
         log_success "Virtual environment already exists"
     fi
-    
+
     # Activate virtual environment
     source .venv/bin/activate
-    
+
     # Upgrade pip
     log_info "Upgrading pip..."
     pip install --upgrade pip setuptools wheel
-    
+
     # Install development dependencies
     if [ -f "requirements-dev.txt" ]; then
         log_info "Installing development dependencies..."
@@ -179,7 +213,7 @@ types-requests==2.31.0
 EOF
         pip install -r requirements-dev.txt
     fi
-    
+
     # Install production dependencies
     if [ -f "requirements.txt" ]; then
         log_info "Installing production dependencies..."
@@ -204,7 +238,7 @@ python-multipart==0.0.6
 EOF
         pip install -r requirements.txt
     fi
-    
+
     log_success "Python environment ready"
     echo ""
 }
@@ -212,7 +246,7 @@ EOF
 # Setup pre-commit hooks
 setup_precommit_hooks() {
     log_info "Setting up pre-commit hooks..."
-    
+
     # Create .pre-commit-config.yaml if not exists
     if [ ! -f ".pre-commit-config.yaml" ]; then
         log_info "Creating pre-commit configuration..."
@@ -253,12 +287,12 @@ repos:
 EOF
         log_success "Pre-commit configuration created"
     fi
-    
+
     # Install pre-commit hooks
     source .venv/bin/activate
     pre-commit install
     pre-commit install --hook-type commit-msg
-    
+
     log_success "Pre-commit hooks installed"
     echo ""
 }
@@ -266,7 +300,7 @@ EOF
 # Setup Google Cloud
 setup_google_cloud() {
     log_info "Setting up Google Cloud..."
-    
+
     if ! command_exists gcloud; then
         log_warning "gcloud CLI not found."
         log_info "Please install from: https://cloud.google.com/sdk/docs/install"
@@ -274,9 +308,9 @@ setup_google_cloud() {
         echo ""
         return
     fi
-    
+
     log_success "gcloud CLI found"
-    
+
     # Check authentication
     if ! gcloud auth list --filter=status:ACTIVE --format="value(account)" &> /dev/null; then
         log_info "Please authenticate with Google Cloud..."
@@ -285,14 +319,14 @@ setup_google_cloud() {
     else
         log_success "Already authenticated with Google Cloud"
     fi
-    
+
     # Prompt for project ID
     read -p "Enter your Google Cloud Project ID (or press Enter to skip): " project_id
-    
+
     if [ ! -z "$project_id" ]; then
         gcloud config set project "$project_id"
         log_success "Project set to: $project_id"
-        
+
         # Enable required APIs
         log_info "Enabling required Google Cloud APIs..."
         gcloud services enable \
@@ -303,17 +337,70 @@ setup_google_cloud() {
             cloudbuild.googleapis.com \
             secretmanager.googleapis.com \
             2>/dev/null || log_warning "Some APIs may already be enabled"
-        
+
         log_success "Google Cloud APIs enabled"
     fi
-    
+
     echo ""
+}
+
+# Setup Google Cloud Secret Manager
+setup_secret_manager() {
+    log_info "Setting up Google Cloud Secret Manager..."
+
+    if ! command_exists gcloud; then
+        log_error "gcloud CLI not found. Please install it first."
+        return 1
+    fi
+
+    # Enable Secret Manager API
+    log_info "Enabling Secret Manager API..."
+    gcloud services enable secretmanager.googleapis.com
+
+    # Create initial secrets if they don't exist
+    PROJECT_ID=$(gcloud config get-value project)
+
+    # JWT Secret Key
+    if ! gcloud secrets describe jwt-secret-key --project="$PROJECT_ID" &>/dev/null; then
+        log_info "Creating JWT secret key..."
+        echo -n "$(openssl rand -hex 32)" | gcloud secrets create jwt-secret-key \
+            --project="$PROJECT_ID" --data-file=-
+        log_success "JWT secret key created"
+    else
+        log_success "JWT secret key already exists"
+    fi
+
+    # YouTube API Key (if provided)
+    if [ ! -z "$YOUTUBE_API_KEY" ]; then
+        if ! gcloud secrets describe youtube-api-key --project="$PROJECT_ID" &>/dev/null; then
+            log_info "Creating YouTube API key secret..."
+            echo -n "$YOUTUBE_API_KEY" | gcloud secrets create youtube-api-key \
+                --project="$PROJECT_ID" --data-file=-
+            log_success "YouTube API key secret created"
+        else
+            log_success "YouTube API key secret already exists"
+        fi
+    fi
+
+    # YouTube Client Secrets (if file exists)
+    if [ -f "client_secrets.json" ]; then
+        if ! gcloud secrets describe youtube-client-secrets --project="$PROJECT_ID" &>/dev/null; then
+            log_info "Creating YouTube client secrets..."
+            gcloud secrets create youtube-client-secrets \
+                --project="$PROJECT_ID" --data-file=client_secrets.json
+            log_success "YouTube client secrets created"
+        else
+            log_success "YouTube client secrets already exist"
+        fi
+    fi
+
+    log_success "Secret Manager setup complete"
 }
 
 # Create environment files
 create_environment_files() {
     log_info "Creating environment files..."
-    
+
     # Create .env.example
     if [ ! -f ".env.example" ]; then
         cat > .env.example << 'EOF'
@@ -348,7 +435,7 @@ ENABLE_MONITORING=true
 EOF
         log_success "Created .env.example"
     fi
-    
+
     # Create .env.local if not exists
     if [ ! -f ".env.local" ]; then
         log_info "Creating .env.local from template..."
@@ -357,7 +444,7 @@ EOF
     else
         log_success ".env.local already exists"
     fi
-    
+
     # Create .gitignore if not exists
     if [ ! -f ".gitignore" ]; then
         cat > .gitignore << 'EOF'
@@ -432,82 +519,14 @@ temp/
 EOF
         log_success "Created .gitignore"
     fi
-    
+
     # Create pyproject.toml for tool configurations
     if [ ! -f "pyproject.toml" ]; then
         cat > pyproject.toml << 'EOF'
 [tool.black]
 line-length = 88
 target-version = ['py311']
-include = '\.pyi?
-        local python_version=$(python3 --version | cut -d' ' -f2)
-        log_success "Python $python_version found"
-    fi
-    
-    # Check pip
-    if ! command_exists pip3; then
-        missing_deps+=("pip3")
-    fi
-    
-    # Check git
-    if ! command_exists git; then
-        missing_deps+=("git")
-    else
-        log_success "Git found"
-    fi
-    
-    # Check Docker
-    if ! command_exists docker; then
-        log_warning "Docker not found - optional but recommended"
-    else
-        log_success "Docker found"
-    fi
-    
-    # Check if any critical dependencies are missing
-    if [ ${#missing_deps[@]} -ne 0 ]; then
-        log_error "Missing required dependencies: ${missing_deps[*]}"
-        log_info "Please install them and run setup again."
-        exit 1
-    fi
-    
-    echo ""
-}
-
-# Setup GitHub CLI
-setup_github_cli() {
-    log_info "Setting up GitHub CLI..."
-    
-    if ! command_exists gh; then
-        log_warning "GitHub CLI not found. Installing..."
-        
-        # Detect OS and install accordingly
-        if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-            curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
-            sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg
-            echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
-            sudo apt update
-            sudo apt install gh -y
-        elif [[ "$OSTYPE" == "darwin"* ]]; then
-            brew install gh
-        else
-            log_error "Unsupported OS. Please install GitHub CLI manually: https://cli.github.com/"
-            exit 1
-        fi
-        
-        log_success "GitHub CLI installed"
-    else
-        log_success "GitHub CLI already installed"
-    fi
-    
-    # Check authentication
-    if ! gh auth status &> /dev/null; then
-        log_info "Authenticating with GitHub..."
-        gh auth login
-        
-        # Refresh token with required scopes
-        log_info "Requesting additional scopes..."
-        gh auth refresh -s copilot,workflow,write:packages
-    else
+include = '\.pyi?$'
 
 [tool.isort]
 profile = "black"
@@ -572,20 +591,20 @@ exclude_lines = [
 EOF
         log_success "Created pyproject.toml"
     fi
-    
+
     echo ""
 }
 
 # Setup Docker
 setup_docker() {
     log_info "Setting up Docker configuration..."
-    
+
     if ! command_exists docker; then
         log_warning "Docker not found, skipping Docker setup"
         echo ""
         return
     fi
-    
+
     # Create Dockerfile if not exists
     if [ ! -f "Dockerfile" ]; then
         cat > Dockerfile << 'EOF'
@@ -638,7 +657,7 @@ CMD ["uvicorn", "backend.api.main:app", "--host", "0.0.0.0", "--port", "8080", "
 EOF
         log_success "Created Dockerfile"
     fi
-    
+
     # Create .dockerignore
     if [ ! -f ".dockerignore" ]; then
         cat > .dockerignore << 'EOF'
@@ -663,7 +682,7 @@ docs/
 EOF
         log_success "Created .dockerignore"
     fi
-    
+
     # Create docker-compose.yml for local development
     if [ ! -f "docker-compose.yml" ]; then
         cat > docker-compose.yml << 'EOF'
@@ -699,7 +718,25 @@ volumes:
 EOF
         log_success "Created docker-compose.yml"
     fi
-    
+
+    echo ""
+}
+
+# Setup YouTube API
+setup_youtube_api() {
+    log_info "Setting up YouTube API configuration..."
+
+    # Check if YouTube API key is configured
+    if ! gh secret list | grep -q "YOUTUBE_API_KEY"; then
+        log_warning "YouTube API key not configured in GitHub secrets"
+        log_info "To configure:"
+        echo "  1. Get API key from: https://console.developers.google.com/"
+        echo "  2. Run: gh secret set YOUTUBE_API_KEY"
+        echo "  3. For OAuth credentials: gh secret set YOUTUBE_CREDENTIALS < client_secret.json"
+    else
+        log_success "YouTube API key configured"
+    fi
+
     echo ""
 }
 
@@ -707,9 +744,9 @@ EOF
 verify_installation() {
     log_info "Verifying installation..."
     echo ""
-    
+
     local errors=0
-    
+
     # Check Python
     if source .venv/bin/activate && python -c "import fastapi, google.cloud.aiplatform" 2>/dev/null; then
         log_success "✓ Python dependencies"
@@ -717,7 +754,7 @@ verify_installation() {
         log_error "✗ Python dependencies"
         errors=$((errors + 1))
     fi
-    
+
     # Check GitHub CLI
     if gh --version &>/dev/null && gh extension list | grep -q "gh-copilot"; then
         log_success "✓ GitHub CLI with Copilot"
@@ -725,7 +762,7 @@ verify_installation() {
         log_error "✗ GitHub CLI or Copilot extension"
         errors=$((errors + 1))
     fi
-    
+
     # Check pre-commit
     if pre-commit --version &>/dev/null; then
         log_success "✓ Pre-commit hooks"
@@ -733,7 +770,7 @@ verify_installation() {
         log_error "✗ Pre-commit hooks"
         errors=$((errors + 1))
     fi
-    
+
     # Check environment files
     if [ -f ".env.local" ] && [ -f "pyproject.toml" ]; then
         log_success "✓ Configuration files"
@@ -741,23 +778,23 @@ verify_installation() {
         log_error "✗ Configuration files"
         errors=$((errors + 1))
     fi
-    
+
     # Check gcloud (optional)
     if command_exists gcloud; then
         log_success "✓ Google Cloud CLI (optional)"
     else
         log_warning "⚠ Google Cloud CLI not found (optional)"
     fi
-    
+
     # Check Docker (optional)
     if command_exists docker; then
         log_success "✓ Docker (optional)"
     else
         log_warning "⚠ Docker not found (optional)"
     fi
-    
+
     echo ""
-    
+
     if [ $errors -eq 0 ]; then
         log_success "All checks passed!"
     else
@@ -797,73 +834,45 @@ print_next_steps() {
     echo ""
 }
 
-# Run main function
-main
-        local python_version=$(python3 --version | cut -d' ' -f2)
-        log_success "Python $python_version found"
-    fi
-    
-    # Check pip
-    if ! command_exists pip3; then
-        missing_deps+=("pip3")
-    fi
-    
-    # Check git
-    if ! command_exists git; then
-        missing_deps+=("git")
-    else
-        log_success "Git found"
-    fi
-    
-    # Check Docker
-    if ! command_exists docker; then
-        log_warning "Docker not found - optional but recommended"
-    else
-        log_success "Docker found"
-    fi
-    
-    # Check if any critical dependencies are missing
-    if [ ${#missing_deps[@]} -ne 0 ]; then
-        log_error "Missing required dependencies: ${missing_deps[*]}"
-        log_info "Please install them and run setup again."
-        exit 1
-    fi
-    
+# Main setup function
+main() {
+    log_info "Starting Video Genius environment setup..."
     echo ""
+
+    # Step 1: Check prerequisites
+    check_prerequisites
+
+    # Step 2: Setup GitHub CLI
+    setup_github_cli
+
+    # Step 3: Setup Python environment
+    setup_python_environment
+
+    # Step 4: Setup pre-commit hooks
+    setup_precommit_hooks
+
+    # Step 5: Setup Google Cloud
+    setup_google_cloud
+
+    # Step 6: Setup Secret Manager
+    setup_secret_manager
+
+    # Step 7: Setup YouTube API
+    setup_youtube_api
+
+    # Step 8: Create environment files
+    create_environment_files
+
+    # Step 9: Setup Docker
+    setup_docker
+
+    # Step 10: Verify installation
+    verify_installation
+
+    echo ""
+    log_success "🎉 Setup complete! You're ready to start developing."
+    print_next_steps
 }
 
-# Setup GitHub CLI
-setup_github_cli() {
-    log_info "Setting up GitHub CLI..."
-    
-    if ! command_exists gh; then
-        log_warning "GitHub CLI not found. Installing..."
-        
-        # Detect OS and install accordingly
-        if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-            curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
-            sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg
-            echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
-            sudo apt update
-            sudo apt install gh -y
-        elif [[ "$OSTYPE" == "darwin"* ]]; then
-            brew install gh
-        else
-            log_error "Unsupported OS. Please install GitHub CLI manually: https://cli.github.com/"
-            exit 1
-        fi
-        
-        log_success "GitHub CLI installed"
-    else
-        log_success "GitHub CLI already installed"
-    fi
-    
-    # Check authentication
-    if ! gh auth status &> /dev/null; then
-        log_info "Authenticating with GitHub..."
-        gh auth login
-        
-        # Refresh token with required scopes
-        log_info "Requesting additional scopes..."
-        gh auth refresh -s copilot,workflow,write:packages
-    else
+# Run main function
+main

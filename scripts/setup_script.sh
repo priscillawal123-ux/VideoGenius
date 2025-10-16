@@ -1,298 +1,298 @@
 #!/bin/bash
 # Video Genius - Complete Environment Setup Script
-# This script sets up the complete development environment
+# Versão: 1.0.0
+# Descrição: Script completo para setup do ambiente de desenvolvimento
 
-set -e  # Exit on error
+# Carrega bibliotecas comuns
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/lib/common.sh"
+source "$SCRIPT_DIR/lib/validation.sh"
+source "$SCRIPT_DIR/lib/setup_functions.sh"
 
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+# ============================================================================
+# FUNÇÃO PRINCIPAL
+# ============================================================================
 
-# Logging functions
-log_info() {
-    echo -e "${BLUE}[INFO]${NC} $1"
-}
-
-log_success() {
-    echo -e "${GREEN}[SUCCESS]${NC} $1"
-}
-
-log_warning() {
-    echo -e "${YELLOW}[WARNING]${NC} $1"
-}
-
-log_error() {
-    echo -e "${RED}[ERROR]${NC} $1"
-}
-
-# Check if command exists
-command_exists() {
-    command -v "$1" &> /dev/null
-}
-
-# Main setup function
+# Função principal de setup
 main() {
-    log_info "Starting Video Genius environment setup..."
+    log_info "🚀 Iniciando setup completo do ambiente Video Genius..."
     echo ""
-    
-    # Step 1: Check prerequisites
-    check_prerequisites
-    
-    # Step 2: Setup GitHub CLI
-    setup_github_cli
-    
-    # Step 3: Setup Python environment
-    setup_python_environment
-    
-    # Step 4: Setup pre-commit hooks
-    setup_precommit_hooks
-    
-    # Step 5: Setup Google Cloud
-    setup_google_cloud
-    
-    # Step 6: Create environment files
-    create_environment_files
-    
-    # Step 7: Setup Docker
-    setup_docker
-    
-    # Step 8: Verify installation
-    verify_installation
-    
+
+    # Passo 1: Validar pré-requisitos
+    run_all_validations
+
+    # Passo 2: Setup GitHub CLI
+    setup_github_cli_complete
+
+    # Passo 3: Setup ambiente Python
+    setup_python_environment_complete
+
+    # Passo 4: Setup pre-commit
+    setup_precommit_complete
+
+    # Passo 5: Setup Google Cloud
+    setup_google_cloud_complete
+
+    # Passo 6: Criar arquivos de configuração
+    create_configuration_files
+
+    # Passo 7: Setup Docker (opcional)
+    setup_docker_config
+
+    # Passo 8: Verificar instalação
+    verify_complete_setup
+
     echo ""
-    log_success "🎉 Setup complete! You're ready to start developing."
-    print_next_steps
+    log_success "🎉 Setup completo! Você está pronto para desenvolver."
+    print_setup_next_steps
 }
 
-# Check prerequisites
-check_prerequisites() {
-    log_info "Checking prerequisites..."
-    
-    local missing_deps=()
-    
-    # Check Python
-    if ! command_exists python3; then
-        missing_deps+=("python3")
-    else
-        log_success "Already authenticated with GitHub"
+# ============================================================================
+# SETUP DOCKER (CONFIGURAÇÃO BÁSICA)
+# ============================================================================
+
+# Setup configuração Docker
+setup_docker_config() {
+    log_info "Configurando Docker..."
+
+    if ! command_exists docker; then
+        log_warning "Docker não encontrado - opcional mas recomendado"
+        log_info "Instale Docker de: https://docs.docker.com/get-docker/"
+        return 1
     fi
-    
-    # Install GitHub CLI extensions
-    log_info "Installing GitHub CLI extensions..."
-    
-    # Install Copilot extension
-    if ! gh extension list | grep -q "gh-copilot"; then
-        log_info "Installing gh-copilot extension..."
-        gh extension install github/gh-copilot
-        log_success "gh-copilot installed"
-    else
-        log_success "gh-copilot already installed"
-        gh extension upgrade gh-copilot
-    fi
-    
-    # Install other useful extensions
-    local extensions=("dlvhdr/gh-dash" "seachicken/gh-poi")
-    for ext in "${extensions[@]}"; do
-        local ext_name=$(basename "$ext")
-        if ! gh extension list | grep -q "$ext_name"; then
-            log_info "Installing $ext_name..."
-            gh extension install "$ext" || log_warning "Failed to install $ext_name (optional)"
-        fi
-    done
-    
-    # Setup useful aliases
-    log_info "Setting up GitHub CLI aliases..."
-    gh alias set prc 'pr create --fill' 2>/dev/null || true
-    gh alias set co 'pr checkout' 2>/dev/null || true
-    gh alias set work 'issue list --assignee @me' 2>/dev/null || true
-    gh alias set bugs 'issue list --label bug' 2>/dev/null || true
-    gh alias set ci 'pr checks' 2>/dev/null || true
-    log_success "Aliases configured"
-    
-    echo ""
+
+    # Criar Dockerfile se não existir
+    create_dockerfile
+
+    # Criar docker-compose.yml
+    create_docker_compose
+
+    log_success "Docker configurado"
 }
 
-# Setup Python environment
-setup_python_environment() {
-    log_info "Setting up Python environment..."
-    
-    # Create virtual environment
-    if [ ! -d ".venv" ]; then
-        log_info "Creating virtual environment..."
-        python3 -m venv .venv
-        log_success "Virtual environment created"
-    else
-        log_success "Virtual environment already exists"
-    fi
-    
-    # Activate virtual environment
-    source .venv/bin/activate
-    
-    # Upgrade pip
-    log_info "Upgrading pip..."
-    pip install --upgrade pip setuptools wheel
-    
-    # Install development dependencies
-    if [ -f "requirements-dev.txt" ]; then
-        log_info "Installing development dependencies..."
-        pip install -r requirements-dev.txt
-        log_success "Development dependencies installed"
-    else
-        log_warning "requirements-dev.txt not found, creating..."
-        cat > requirements-dev.txt << 'EOF'
-# Core Framework
-fastapi==0.104.1
-uvicorn[standard]==0.24.0
-pydantic==2.5.0
+# Criar Dockerfile
+create_dockerfile() {
+    if ! file_exists_and_readable "Dockerfile"; then
+        cat > Dockerfile << 'EOF'
+# Multi-stage build for Cloud Run optimization
+FROM python:3.11-slim as base
 
-# Google Cloud
-google-cloud-aiplatform==1.38.0
-google-cloud-bigquery==3.13.0
-google-cloud-storage==2.10.0
-google-auth==2.23.4
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
 
-# Testing
-pytest==7.4.3
-pytest-asyncio==0.21.1
-pytest-cov==4.1.0
-pytest-mock==3.12.0
-httpx==0.25.1
+WORKDIR /app
 
-# Linting & Formatting
-ruff==0.1.6
-black==23.11.0
-mypy==1.7.1
-isort==5.12.0
+# Development stage
+FROM base as development
 
-# Pre-commit
-pre-commit==3.5.0
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    git \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
 
-# Development tools
-ipython==8.17.2
-python-dotenv==1.0.0
+COPY requirements-dev.txt .
+RUN pip install -r requirements-dev.txt
 
-# Type stubs
-types-requests==2.31.0
+COPY . .
+
+CMD ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8080", "--reload"]
+
+# Production stage
+FROM base as production
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ffmpeg \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+
+COPY backend/ ./backend/
+
+RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
+USER appuser
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8080/health || exit 1
+
+CMD ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8080", "--workers", "4"]
 EOF
-        pip install -r requirements-dev.txt
+        log_success "Dockerfile criado"
     fi
-    
-    # Install production dependencies
-    if [ -f "requirements.txt" ]; then
-        log_info "Installing production dependencies..."
-        pip install -r requirements.txt
-    else
-        log_warning "requirements.txt not found, creating basic version..."
-        cat > requirements.txt << 'EOF'
-# Core Framework
-fastapi==0.104.1
-uvicorn[standard]==0.24.0
-pydantic==2.5.0
 
-# Google Cloud
-google-cloud-aiplatform==1.38.0
-google-cloud-bigquery==3.13.0
-google-cloud-storage==2.10.0
-google-auth==2.23.4
-
-# Utilities
-python-dotenv==1.0.0
-python-multipart==0.0.6
+    # Criar .dockerignore
+    if ! file_exists_and_readable ".dockerignore"; then
+        cat > .dockerignore << 'EOF'
+.venv
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.git
+.gitignore
+.pytest_cache
+.coverage
+htmlcov
+.env
+.env.local
+*.log
+.DS_Store
+README.md
+tests/
+docs/
+.github/
 EOF
-        pip install -r requirements.txt
+        log_success ".dockerignore criado"
     fi
-    
-    log_success "Python environment ready"
-    echo ""
 }
 
-# Setup pre-commit hooks
-setup_precommit_hooks() {
-    log_info "Setting up pre-commit hooks..."
-    
-    # Create .pre-commit-config.yaml if not exists
-    if [ ! -f ".pre-commit-config.yaml" ]; then
-        log_info "Creating pre-commit configuration..."
-        cat > .pre-commit-config.yaml << 'EOF'
-repos:
-  - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.5.0
-    hooks:
-      - id: trailing-whitespace
-      - id: end-of-file-fixer
-      - id: check-yaml
-      - id: check-added-large-files
-        args: ['--maxkb=1000']
-      - id: check-json
-      - id: check-toml
-      - id: check-merge-conflict
-      - id: debug-statements
+# Criar docker-compose.yml
+create_docker_compose() {
+    if ! file_exists_and_readable "docker-compose.yml"; then
+        cat > docker-compose.yml << 'EOF'
+version: '3.8'
 
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.1.6
-    hooks:
-      - id: ruff
-        args: [--fix, --exit-non-zero-on-fix]
-      - id: ruff-format
+services:
+  app:
+    build:
+      context: .
+      target: development
+    ports:
+      - "8080:8080"
+    volumes:
+      - .:/app
+      - /app/.venv
+    env_file:
+      - .env.local
+    environment:
+      - ENV=development
+      - DEBUG=true
+    depends_on:
+      - redis
 
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.7.1
-    hooks:
-      - id: mypy
-        additional_dependencies: [types-requests]
-        args: [--ignore-missing-imports]
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
 
-  - repo: https://github.com/pycqa/isort
-    rev: 5.12.0
-    hooks:
-      - id: isort
-        args: ["--profile", "black"]
+volumes:
+  redis_data:
 EOF
-        log_success "Pre-commit configuration created"
+        log_success "docker-compose.yml criado"
     fi
-    
-    # Install pre-commit hooks
-    source .venv/bin/activate
-    pre-commit install
-    pre-commit install --hook-type commit-msg
-    
-    log_success "Pre-commit hooks installed"
-    echo ""
 }
 
-# Setup Google Cloud
-setup_google_cloud() {
-    log_info "Setting up Google Cloud..."
-    
-    if ! command_exists gcloud; then
-        log_warning "gcloud CLI not found."
-        log_info "Please install from: https://cloud.google.com/sdk/docs/install"
-        log_info "Skipping Google Cloud setup..."
-        echo ""
-        return
-    fi
-    
-    log_success "gcloud CLI found"
-    
-    # Check authentication
-    if ! gcloud auth list --filter=status:ACTIVE --format="value(account)" &> /dev/null; then
-        log_info "Please authenticate with Google Cloud..."
-        gcloud auth login
-        gcloud auth application-default login
+# ============================================================================
+# VERIFICAÇÃO FINAL
+# ============================================================================
+
+# Verificar setup completo
+verify_complete_setup() {
+    log_info "Verificando instalação completa..."
+    echo ""
+
+    local errors=0
+
+    # Verificar Python e dependências
+    if verify_python_setup; then
+        log_success "✓ Ambiente Python"
     else
-        log_success "Already authenticated with Google Cloud"
+        log_error "✗ Ambiente Python"
+        errors=$((errors + 1))
     fi
-    
-    # Prompt for project ID
-    read -p "Enter your Google Cloud Project ID (or press Enter to skip): " project_id
-    
-    if [ ! -z "$project_id" ]; then
-        gcloud config set project "$project_id"
-        log_success "Project set to: $project_id"
-        
+
+    # Verificar GitHub CLI
+    if verify_github_cli_setup; then
+        log_success "✓ GitHub CLI com Copilot"
+    else
+        log_error "✗ GitHub CLI ou Copilot"
+        errors=$((errors + 1))
+    fi
+
+    # Verificar pre-commit
+    if verify_precommit_setup; then
+        log_success "✓ Pre-commit hooks"
+    else
+        log_error "✗ Pre-commit hooks"
+        errors=$((errors + 1))
+    fi
+
+    # Verificar arquivos de configuração
+    if verify_config_files; then
+        log_success "✓ Arquivos de configuração"
+    else
+        log_error "✗ Arquivos de configuração"
+        errors=$((errors + 1))
+    fi
+
+    # Verificar Google Cloud (opcional)
+    if command_exists gcloud && gcloud auth list --filter=status:ACTIVE --format="value(account)" &> /dev/null; then
+        log_success "✓ Google Cloud CLI"
+    else
+        log_warning "⚠ Google Cloud CLI não configurado (opcional)"
+    fi
+
+    # Verificar Docker (opcional)
+    if command_exists docker; then
+        log_success "✓ Docker"
+    else
+        log_warning "⚠ Docker não encontrado (opcional)"
+    fi
+
+    echo ""
+
+    if [ $errors -eq 0 ]; then
+        log_success "Todas as verificações passaram!"
+        return 0
+    else
+        log_error "$errors verificação(ões) falhou(aram). Reveja os erros acima."
+        return 1
+    fi
+}
+
+# Verificar setup do Python
+verify_python_setup() {
+    source .venv/bin/activate 2>/dev/null || return 1
+
+    # Verificar imports principais
+    python3 -c "
+import sys
+try:
+    import fastapi
+    import uvicorn
+    import pydantic
+    import google.cloud.aiplatform
+    import google.cloud.bigquery
+    import google.cloud.storage
+    print('SUCCESS')
+except ImportError as e:
+    print(f'FAILED: {e}')
+    sys.exit(1)
+" 2>/dev/null | grep -q "SUCCESS"
+}
+
+# Verificar setup do GitHub CLI
+verify_github_cli_setup() {
+    gh --version &>/dev/null || return 1
+    gh extension list | grep -q "gh-copilot" || return 1
+    gh auth status &>/dev/null || return 1
+}
+
+# Verificar setup do pre-commit
+verify_precommit_setup() {
+    source .venv/bin/activate 2>/dev/null || return 1
+    pre-commit --version &>/dev/null
+}
+
+# Verificar arquivos de configuração
+verify_config_files() {
+
         # Enable required APIs
         log_info "Enabling required Google Cloud APIs..."
         gcloud services enable \
@@ -303,17 +303,17 @@ setup_google_cloud() {
             cloudbuild.googleapis.com \
             secretmanager.googleapis.com \
             2>/dev/null || log_warning "Some APIs may already be enabled"
-        
+
         log_success "Google Cloud APIs enabled"
     fi
-    
+
     echo ""
 }
 
 # Create environment files
 create_environment_files() {
     log_info "Creating environment files..."
-    
+
     # Create .env.example
     if [ ! -f ".env.example" ]; then
         cat > .env.example << 'EOF'
@@ -348,7 +348,7 @@ ENABLE_MONITORING=true
 EOF
         log_success "Created .env.example"
     fi
-    
+
     # Create .env.local if not exists
     if [ ! -f ".env.local" ]; then
         log_info "Creating .env.local from template..."
@@ -357,7 +357,7 @@ EOF
     else
         log_success ".env.local already exists"
     fi
-    
+
     # Create .gitignore if not exists
     if [ ! -f ".gitignore" ]; then
         cat > .gitignore << 'EOF'
@@ -432,7 +432,7 @@ temp/
 EOF
         log_success "Created .gitignore"
     fi
-    
+
     # Create pyproject.toml for tool configurations
     if [ ! -f "pyproject.toml" ]; then
         cat > pyproject.toml << 'EOF'
@@ -443,43 +443,43 @@ include = '\.pyi?
         local python_version=$(python3 --version | cut -d' ' -f2)
         log_success "Python $python_version found"
     fi
-    
+
     # Check pip
     if ! command_exists pip3; then
         missing_deps+=("pip3")
     fi
-    
+
     # Check git
     if ! command_exists git; then
         missing_deps+=("git")
     else
         log_success "Git found"
     fi
-    
+
     # Check Docker
     if ! command_exists docker; then
         log_warning "Docker not found - optional but recommended"
     else
         log_success "Docker found"
     fi
-    
+
     # Check if any critical dependencies are missing
     if [ ${#missing_deps[@]} -ne 0 ]; then
         log_error "Missing required dependencies: ${missing_deps[*]}"
         log_info "Please install them and run setup again."
         exit 1
     fi
-    
+
     echo ""
 }
 
 # Setup GitHub CLI
 setup_github_cli() {
     log_info "Setting up GitHub CLI..."
-    
+
     if ! command_exists gh; then
         log_warning "GitHub CLI not found. Installing..."
-        
+
         # Detect OS and install accordingly
         if [[ "$OSTYPE" == "linux-gnu"* ]]; then
             curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
@@ -493,17 +493,17 @@ setup_github_cli() {
             log_error "Unsupported OS. Please install GitHub CLI manually: https://cli.github.com/"
             exit 1
         fi
-        
+
         log_success "GitHub CLI installed"
     else
         log_success "GitHub CLI already installed"
     fi
-    
+
     # Check authentication
     if ! gh auth status &> /dev/null; then
         log_info "Authenticating with GitHub..."
         gh auth login
-        
+
         # Refresh token with required scopes
         log_info "Requesting additional scopes..."
         gh auth refresh -s copilot,workflow,write:packages
@@ -572,20 +572,20 @@ exclude_lines = [
 EOF
         log_success "Created pyproject.toml"
     fi
-    
+
     echo ""
 }
 
 # Setup Docker
 setup_docker() {
     log_info "Setting up Docker configuration..."
-    
+
     if ! command_exists docker; then
         log_warning "Docker not found, skipping Docker setup"
         echo ""
         return
     fi
-    
+
     # Create Dockerfile if not exists
     if [ ! -f "Dockerfile" ]; then
         cat > Dockerfile << 'EOF'
@@ -638,7 +638,7 @@ CMD ["uvicorn", "backend.api.main:app", "--host", "0.0.0.0", "--port", "8080", "
 EOF
         log_success "Created Dockerfile"
     fi
-    
+
     # Create .dockerignore
     if [ ! -f ".dockerignore" ]; then
         cat > .dockerignore << 'EOF'
@@ -663,7 +663,7 @@ docs/
 EOF
         log_success "Created .dockerignore"
     fi
-    
+
     # Create docker-compose.yml for local development
     if [ ! -f "docker-compose.yml" ]; then
         cat > docker-compose.yml << 'EOF'
@@ -699,7 +699,7 @@ volumes:
 EOF
         log_success "Created docker-compose.yml"
     fi
-    
+
     echo ""
 }
 
@@ -707,9 +707,9 @@ EOF
 verify_installation() {
     log_info "Verifying installation..."
     echo ""
-    
+
     local errors=0
-    
+
     # Check Python
     if source .venv/bin/activate && python -c "import fastapi, google.cloud.aiplatform" 2>/dev/null; then
         log_success "✓ Python dependencies"
@@ -717,7 +717,7 @@ verify_installation() {
         log_error "✗ Python dependencies"
         errors=$((errors + 1))
     fi
-    
+
     # Check GitHub CLI
     if gh --version &>/dev/null && gh extension list | grep -q "gh-copilot"; then
         log_success "✓ GitHub CLI with Copilot"
@@ -725,7 +725,7 @@ verify_installation() {
         log_error "✗ GitHub CLI or Copilot extension"
         errors=$((errors + 1))
     fi
-    
+
     # Check pre-commit
     if pre-commit --version &>/dev/null; then
         log_success "✓ Pre-commit hooks"
@@ -733,7 +733,7 @@ verify_installation() {
         log_error "✗ Pre-commit hooks"
         errors=$((errors + 1))
     fi
-    
+
     # Check environment files
     if [ -f ".env.local" ] && [ -f "pyproject.toml" ]; then
         log_success "✓ Configuration files"
@@ -741,23 +741,23 @@ verify_installation() {
         log_error "✗ Configuration files"
         errors=$((errors + 1))
     fi
-    
+
     # Check gcloud (optional)
     if command_exists gcloud; then
         log_success "✓ Google Cloud CLI (optional)"
     else
         log_warning "⚠ Google Cloud CLI not found (optional)"
     fi
-    
+
     # Check Docker (optional)
     if command_exists docker; then
         log_success "✓ Docker (optional)"
     else
         log_warning "⚠ Docker not found (optional)"
     fi
-    
+
     echo ""
-    
+
     if [ $errors -eq 0 ]; then
         log_success "All checks passed!"
     else
@@ -802,43 +802,43 @@ main
         local python_version=$(python3 --version | cut -d' ' -f2)
         log_success "Python $python_version found"
     fi
-    
+
     # Check pip
     if ! command_exists pip3; then
         missing_deps+=("pip3")
     fi
-    
+
     # Check git
     if ! command_exists git; then
         missing_deps+=("git")
     else
         log_success "Git found"
     fi
-    
+
     # Check Docker
     if ! command_exists docker; then
         log_warning "Docker not found - optional but recommended"
     else
         log_success "Docker found"
     fi
-    
+
     # Check if any critical dependencies are missing
     if [ ${#missing_deps[@]} -ne 0 ]; then
         log_error "Missing required dependencies: ${missing_deps[*]}"
         log_info "Please install them and run setup again."
         exit 1
     fi
-    
+
     echo ""
 }
 
 # Setup GitHub CLI
 setup_github_cli() {
     log_info "Setting up GitHub CLI..."
-    
+
     if ! command_exists gh; then
         log_warning "GitHub CLI not found. Installing..."
-        
+
         # Detect OS and install accordingly
         if [[ "$OSTYPE" == "linux-gnu"* ]]; then
             curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
@@ -852,17 +852,17 @@ setup_github_cli() {
             log_error "Unsupported OS. Please install GitHub CLI manually: https://cli.github.com/"
             exit 1
         fi
-        
+
         log_success "GitHub CLI installed"
     else
         log_success "GitHub CLI already installed"
     fi
-    
+
     # Check authentication
     if ! gh auth status &> /dev/null; then
         log_info "Authenticating with GitHub..."
         gh auth login
-        
+
         # Refresh token with required scopes
         log_info "Requesting additional scopes..."
         gh auth refresh -s copilot,workflow,write:packages

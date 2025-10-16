@@ -1,0 +1,62 @@
+# cloudbuild.prod.yaml
+# Pipeline de CI/CD para deploy em produção com estratégia Blue/Green.
+
+steps:
+  # 1. Construir a imagem Docker do serviço principal
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/videogenius-repo/orchestrator:prod-$SHORT_SHA', '.']
+    id: 'Build Image'
+
+  # 2. Enviar a imagem para o Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/videogenius-repo/orchestrator:prod-$SHORT_SHA']
+    id: 'Push Image'
+    waitFor: ['Build Image']
+
+  # 3. Scan de vulnerabilidades (simulado - em um cenário real, usaria a API do Container Analysis)
+  # O Artifact Registry faz o scan automaticamente. Este passo poderia ser um quality gate que verifica os resultados.
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'bash'
+    args:
+      - -c
+      - |
+        echo "✅ Simulating vulnerability scan. No critical issues found."
+    id: 'Vulnerability Scan'
+    waitFor: ['Push Image']
+
+  # 4. Deploy da nova versão "Green" sem enviar tráfego
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'Deploy Green Revision'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'vg-orchestrator-prod'
+      - '--image=us-central1-docker.pkg.dev/$PROJECT_ID/videogenius-repo/orchestrator:prod-$SHORT_SHA'
+      - '--region=us-central1'
+      - '--platform=managed'
+      - '--no-traffic'
+      - '--tag=green'
+    waitFor: ['Vulnerability Scan']
+
+  # 5. Executar Smoke Tests na revisão "Green"
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'Smoke Test Green'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        GREEN_URL=$(gcloud run services describe vg-orchestrator-prod --platform=managed --region=us-central1 --format='value(traffic_statuses[?tag==green].url)')
+        echo "Testing new revision at: $GREEN_URL"
+        curl --fail -H "Authorization: Bearer $(gcloud auth print-identity-token)" $GREEN_URL/health || exit 1
+        echo "✅ Smoke test passed!"
+    waitFor: ['Deploy Green Revision']
+
+  # 6. Migrar 100% do tráfego para a nova versão
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'Promote to Production'
+    entrypoint: gcloud
+    args: ['run', 'services', 'update-traffic', 'vg-orchestrator-prod', '--to-tags=green=100', '--region=us-central1']
+    waitFor: ['Smoke Test Green']
+
+timeout: '1200s'

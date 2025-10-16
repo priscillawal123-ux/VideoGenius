@@ -1,0 +1,61 @@
+name: Manual Deploy to Production
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_deploy:
+        description: 'Type "DEPLOY" to confirm deployment to production'
+        required: true
+        type: string
+
+jobs:
+  deploy:
+    name: Deploy via Cloud Build
+    runs-on: ubuntu-latest
+    if: github.event.inputs.confirm_deploy == 'DEPLOY'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to Cloud Run via Cloud Build
+        run: |
+          echo "🚀 Starting deployment to production..."
+
+          # Submit build to Cloud Build
+          gcloud builds submit \
+            --config=cloudbuild.yaml \
+            --project=video-genius-prod-v1 \
+            --substitutions=_SERVICE_NAME=video-genius-api,_REGION=us-central1
+
+      - name: Get service URL
+        run: |
+          # Wait a bit for deployment to complete
+          sleep 30
+
+          SERVICE_URL=$(gcloud run services describe video-genius-api \
+            --project=video-genius-prod-v1 \
+            --region=us-central1 \
+            --format="value(status.url)")
+
+          echo "🎉 Deployment completed!"
+          echo "Service URL: $SERVICE_URL"
+          echo "API Docs: $SERVICE_URL/docs"
+          echo "Health Check: $SERVICE_URL/health"
+
+      - name: Health check
+        run: |
+          SERVICE_URL=$(gcloud run services describe video-genius-api \
+            --project=video-genius-prod-v1 \
+            --region=us-central1 \
+            --format="value(status.url)")
+
+          echo "Running health check..."
+          sleep 10
+
+          if curl -f -s "$SERVICE_URL/health" > /dev/null; then
+            echo "✅ Health check passed!"
+          else
+            echo "❌ Health check failed"
+            exit 1
+          fi

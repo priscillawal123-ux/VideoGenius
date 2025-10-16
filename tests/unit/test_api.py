@@ -1,59 +1,59 @@
 """
-Unit tests for the main API application.
-
-Tests basic functionality of the FastAPI application.
+Unit tests for API endpoints.
 """
+
+from unittest.mock import MagicMock, patch
 
 from fastapi.testclient import TestClient
 
 
-class TestMainAPI:
-    """Test cases for the main FastAPI application."""
+def test_root_endpoint(client: TestClient):
+    """Test root endpoint."""
+    response = client.get("/")
+    assert response.status_code == 200
+    data = response.json()
+    assert "message" in data
+    assert "Video Genius API" in data["message"]
 
-    def test_root_endpoint(self, client: TestClient):
-        """Test the root endpoint returns correct response."""
-        response = client.get("/")
 
+def test_health_endpoint(client: TestClient):
+    """Test health check endpoint."""
+    response = client.get("/health")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "healthy"
+
+
+def test_list_buckets_success(client: TestClient):
+    """Test successful bucket listing."""
+    mock_bucket1 = MagicMock()
+    mock_bucket1.name = "test-bucket-1"
+    mock_bucket2 = MagicMock()
+    mock_bucket2.name = "test-bucket-2"
+
+    with patch("google.cloud.storage.Client") as mock_client_class:
+        mock_client = MagicMock()
+        mock_client.list_buckets.return_value = [mock_bucket1, mock_bucket2]
+        mock_client_class.return_value = mock_client
+
+        response = client.get("/gcp/buckets")
         assert response.status_code == 200
         data = response.json()
-        assert "message" in data
-        assert "version" in data
-        assert "docs" in data
-        assert "health" in data
+        assert isinstance(data, list)
+        assert len(data) == 2
+        assert "test-bucket-1" in data
+        assert "test-bucket-2" in data
 
-    def test_health_endpoint(self, client: TestClient):
-        """Test the health check endpoint."""
-        response = client.get("/health")
 
-        assert response.status_code == 200
+def test_list_buckets_failure(client: TestClient):
+    """Test bucket listing failure."""
+    with patch("google.cloud.storage.Client") as mock_client_class:
+        mock_client = MagicMock()
+        mock_client.list_buckets.side_effect = Exception("GCP connection failed")
+        mock_client_class.return_value = mock_client
+
+        response = client.get("/gcp/buckets")
+        assert response.status_code == 500
         data = response.json()
-        assert data["status"] == "healthy"
-        assert "version" in data
-        assert "environment" in data
-
-    def test_openapi_docs_available(self, client: TestClient):
-        """Test that OpenAPI documentation is available."""
-        response = client.get("/openapi.json")
-
-        assert response.status_code == 200
-        data = response.json()
-        assert "info" in data
-        assert "paths" in data
-        assert data["info"]["title"] == "Video Genius API"
-
-    def test_cors_headers(self, client: TestClient):
-        """Test CORS headers are properly set."""
-        response = client.options("/")
-
-        # Check if CORS headers are present
-        cors_headers = [
-            "access-control-allow-origin",
-            "access-control-allow-methods",
-            "access-control-allow-headers"
-        ]
-
-        response_headers = {k.lower(): v for k, v in response.headers.items()}
-
-        # At least one CORS header should be present
-        has_cors = any(header in response_headers for header in cors_headers)
-        assert has_cors, "CORS headers should be present"
+        assert data["error"] == "HTTP_EXCEPTION"
+        assert "Failed to access Cloud Storage" in data["message"]

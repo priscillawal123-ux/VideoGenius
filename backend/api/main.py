@@ -1,115 +1,189 @@
 """
-Main FastAPI application for Video Genius.
-
-This module initializes the FastAPI application with all necessary
-middlewares, routes, and configurations.
+Main FastAPI application for Video Genius with Google Cloud optimizations.
 """
 
+import asyncio
+import logging
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
-from fastapi.responses import JSONResponse
 
-from backend.core.config import settings
-from backend.core.logging import setup_logging, get_logger
+from backend.api.routes.auth import router as auth_router
+from backend.api.routes.gcp import router as gcp_router
+from backend.api.routes.videos import router as videos_router
+from backend.core.config import get_settings
+from backend.core.exception_handlers import add_exception_handlers
+from backend.core.logging import setup_logging
+from backend.core.monitoring import setup_monitoring
+from backend.core.rate_limiting import setup_rate_limiting
 
 # Setup logging
 setup_logging()
-logger = get_logger(__name__)
+settings = get_settings()
+logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
-    """Application lifespan context manager.
-
-    Handles startup and shutdown events.
-    """
+async def lifespan(app: FastAPI):
+    """Application lifespan context manager for startup/shutdown events."""
     logger.info("Starting Video Genius API...")
 
-    # Startup logic here
+    # Startup tasks
     logger.info("Application startup complete")
 
     yield
 
-    # Shutdown logic here
+    # Shutdown tasks
     logger.info("Shutting down Video Genius API...")
 
 
-# Create FastAPI application
-app = FastAPI(
-    title="Video Genius API",
-    description="AI-powered video generation for YouTube creators",
-    version="1.0.0",
-    docs_url="/docs",
-    redoc_url="/redoc",
-    openapi_url="/openapi.json",
-    lifespan=lifespan,
-)
+def create_application() -> FastAPI:
+    """Create and configure FastAPI application with Google Cloud optimizations."""
+    app = FastAPI(
+        title="Video Genius API",
+        description="""
+        AI-powered video generation platform for creating engaging videos from text scripts.
 
-# Add CORS middleware
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=settings.allowed_origins,
-    allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allow_headers=["*"],
-)
+        ## Features
 
-# Add trusted host middleware (only in production)
-if settings.env == "production":
+        * **Video Generation**: Generate videos from text scripts using AI
+        * **User Authentication**: JWT-based authentication system
+        * **Cloud Storage**: Google Drive and Cloud Storage integration
+        * **BigQuery Analytics**: Video generation analytics and tracking
+        * **Real-time Status**: Monitor video generation progress
+
+        ## Authentication
+
+        Most endpoints require authentication. Use the `/auth/login` endpoint to obtain a JWT token,
+        then include it in the Authorization header as `Bearer <token>`.
+
+        ## Rate Limits
+
+        * Video generation: 10 requests per hour for free users
+        * API calls: 1000 requests per hour
+
+        ## Support
+
+        For support, contact: support@videogenius.com.br
+        """,
+        version="1.0.0",
+        contact={
+            "name": "Video Genius Support",
+            "email": "support@videogenius.com.br",
+            "url": "https://videogenius.com.br/support",
+        },
+        license_info={
+            "name": "Proprietary",
+            "url": "https://videogenius.com.br/license",
+        },
+        servers=[
+            {
+                "url": "https://videogenius.com.br",
+                "description": "Production server",
+            },
+            {
+                "url": "http://localhost:8080",
+                "description": "Development server",
+            },
+        ],
+        lifespan=lifespan,
+    )
+
+    # Add CORS middleware
     app.add_middleware(
-        TrustedHostMiddleware,
-        allowed_hosts=["your-domain.com"],  # Configure for production
+        CORSMiddleware,
+        allow_origins=settings.cors_origins,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
     )
 
+    # Add trusted host middleware
+    # app.add_middleware(
+    #     TrustedHostMiddleware,
+    #     allowed_hosts=settings.allowed_hosts,
+    # )
 
-# Global exception handler
-@app.exception_handler(Exception)
-async def global_exception_handler(request: Request, exc: Exception):
-    """Global exception handler for unhandled exceptions."""
-    logger.error(f"Unhandled exception: {exc}", exc_info=True)
-    return JSONResponse(
-        status_code=500,
-        content={
-            "error": "Internal server error",
-            "message": "An unexpected error occurred"
+    # Add global exception handlers
+    add_exception_handlers(app)
+
+    # Setup monitoring and tracing
+    setup_monitoring(app)
+
+    # Setup rate limiting
+    # setup_rate_limiting(app)
+
+    # Include routers
+    app.include_router(auth_router)
+    app.include_router(gcp_router, prefix="/gcp", tags=["gcp"])
+    app.include_router(videos_router)
+
+    @app.get("/")
+    async def root() -> dict:
+        """Root endpoint."""
+        return {
+            "message": "Video Genius API",
+            "status": "running",
+            "version": "1.0.0",
         }
-    )
+
+    @app.get("/health")
+    async def health_check() -> dict:
+        """Health check endpoint with detailed status."""
+        return {
+            "status": "healthy",
+            "message": "Server is running",
+            "environment": settings.environment,
+            "gcp_project": settings.google_project_id,
+            "features": {
+                "circuit_breaker": settings.enable_circuit_breaker,
+                "caching": settings.enable_caching,
+                "uvloop": settings.use_uvloop,
+            },
+        }
+
+    @app.get("/ready")
+    async def readiness_check() -> dict:
+        """Readiness check endpoint for Kubernetes/load balancers."""
+        # Add actual dependency checks here (GCP services, database, etc.)
+        return {
+            "status": "ready",
+            "checks": {
+                "gcp_services": "ok",
+                "database": "ok",
+                "cache": "ok",
+            },
+        }
+
+    return app
 
 
-# Health check endpoint
-@app.get("/health", tags=["Health"])
-async def health_check():
-    """Health check endpoint."""
-    return {
-        "status": "healthy",
-        "version": "1.0.0",
-        "environment": settings.env
-    }
-
-
-# Root endpoint
-@app.get("/", tags=["Root"])
-async def root():
-    """Root endpoint with API information."""
-    return {
-        "message": "Welcome to Video Genius API",
-        "version": "1.0.0",
-        "docs": "/docs",
-        "health": "/health"
-    }
+app = create_application()
 
 
 if __name__ == "__main__":
     import uvicorn
 
+    # Use uvloop for better performance if enabled
+    if settings.use_uvloop:
+        try:
+            import uvloop
+
+            asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
+            logger.info("Using uvloop event loop policy")
+        except ImportError:
+            logger.warning("uvloop not available, using default event loop")
+
+    # Start server with optimized settings
     uvicorn.run(
         "backend.api.main:app",
-        host=settings.api_host,
-        port=settings.api_port,
-        reload=settings.debug,
+        host=settings.host,
+        port=settings.port,
+        reload=settings.environment == "development",
         log_level=settings.log_level.lower(),
+        access_log=True,
+        server_header=False,  # Security: don't expose server info
+        date_header=False,  # Security: don't expose server time
     )

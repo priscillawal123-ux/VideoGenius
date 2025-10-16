@@ -1,49 +1,49 @@
 """
-Logging configuration for the Video Genius application.
-
-Provides structured logging with proper formatting and levels.
+Logging configuration for Video Genius.
 """
 
+import json
 import logging
 import sys
-from typing import Optional
+from typing import Any, Optional
 
-from backend.core.config import settings
+from backend.core.config import get_settings
 
 
-def setup_logging(
-    level: Optional[str] = None,
-    format_string: Optional[str] = None
-) -> None:
-    """Setup logging configuration for the application.
+class JSONFormatter(logging.Formatter):
+    """JSON formatter for structured logging."""
 
-    Args:
-        level: Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
-        format_string: Custom format string for log messages
-    """
-    # Use provided level or get from settings
-    log_level = level or settings.log_level
-    numeric_level = getattr(logging, log_level.upper(), logging.INFO)
+    def format(self, record: logging.LogRecord) -> str:
+        """Format log record as JSON."""
+        log_entry = {
+            "timestamp": self.formatTime(record),
+            "level": record.levelname,
+            "logger": record.name,
+            "message": record.getMessage(),
+        }
 
-    # Default format string
-    if format_string is None:
-        if settings.debug:
-            format_string = (
-                "%(asctime)s - %(name)s - %(levelname)s - "
-                "%(filename)s:%(lineno)d - %(message)s"
-            )
-        else:
-            format_string = (
-                "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-            )
+        # Add exception info if present
+        if record.exc_info:
+            log_entry["exception"] = self.formatException(record.exc_info)
 
-    # Create formatter
-    formatter = logging.Formatter(
-        format_string,
-        datefmt="%Y-%m-%d %H:%M:%S"
-    )
+        # Add extra fields
+        if hasattr(record, "extra_fields"):
+            log_entry.update(record.extra_fields)
 
-    # Setup root logger
+        return json.dumps(log_entry, default=str)
+
+
+def setup_logging(level: Optional[str] = None) -> None:
+    """Setup logging configuration."""
+    settings = get_settings()
+
+    # Determine log level
+    if level is None:
+        level = settings.log_level
+
+    numeric_level = getattr(logging, level.upper(), logging.INFO)
+
+    # Configure root logger
     root_logger = logging.getLogger()
     root_logger.setLevel(numeric_level)
 
@@ -51,29 +51,53 @@ def setup_logging(
     for handler in root_logger.handlers[:]:
         root_logger.removeHandler(handler)
 
+    # Create formatter based on log format setting
+    if settings.log_format.lower() == "json":
+        formatter = JSONFormatter()
+    else:
+        formatter = logging.Formatter(
+            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        )
+
     # Console handler
     console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setLevel(numeric_level)
     console_handler.setFormatter(formatter)
     root_logger.addHandler(console_handler)
 
-    # Set specific loggers to reduce noise
-    logging.getLogger("httpx").setLevel(logging.WARNING)
+    # Set logging levels for external libraries
+    logging.getLogger("uvicorn").setLevel(logging.WARNING)
+    logging.getLogger("uvicorn.access").setLevel(logging.WARNING)
+    logging.getLogger("fastapi").setLevel(logging.WARNING)
     logging.getLogger("google").setLevel(logging.WARNING)
-    logging.getLogger("urllib3").setLevel(logging.WARNING)
+    logging.getLogger("httpx").setLevel(logging.WARNING)
 
-    # Log the setup
-    logger = logging.getLogger(__name__)
-    logger.info(f"Logging configured with level: {log_level}")
+    # Create video_genius logger
+    logger = logging.getLogger("video_genius")
+    logger.setLevel(numeric_level)
 
 
 def get_logger(name: str) -> logging.Logger:
-    """Get a logger instance with the specified name.
+    """Get logger instance."""
+    return logging.getLogger(f"video_genius.{name}")
 
-    Args:
-        name: Logger name (usually __name__)
 
-    Returns:
-        Configured logger instance
-    """
-    return logging.getLogger(name)
+def log_with_context(
+    logger: logging.Logger, level: int, message: str, **context: Any
+) -> None:
+    """Log message with additional context."""
+    extra = {"extra_fields": context} if context else {}
+    logger.log(level, message, extra=extra)
+
+
+def log_error_with_context(
+    logger: logging.Logger, message: str, error: Exception, **context: Any
+) -> None:
+    """Log error with exception details and context."""
+    context.update(
+        {
+            "error_type": type(error).__name__,
+            "error_message": str(error),
+        }
+    )
+    log_with_context(logger, logging.ERROR, message, **context)

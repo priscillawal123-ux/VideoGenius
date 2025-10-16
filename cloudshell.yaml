@@ -1,0 +1,44 @@
+apiVersion: run.googleapis.com/v1
+kind: Service
+metadata:
+  name: mother-agent
+  annotations:
+    run.googleapis.com/ingress: ALL
+    run.googleapis.com/client-name: cloud-console
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/maxScale: "10"
+        autoscaling.knative.dev/minScale: "1"
+        run.googleapis.com/cpu-throttling: "false"
+    spec:
+      containers:
+      - image: gcr.io/$PROJECT_ID/mother-agent:latest
+        ports:
+        - containerPort: 8080
+        resources:
+          limits:
+            cpu: "2"
+            memory: "4Gi"
+        env:
+        - name: ENVIRONMENT
+          value: "production"
+        - name: GCP_PROJECT_ID
+          value: "$PROJECT_ID"
+        - name: GEMINI_API_KEY
+          value: "YOUR_GEMINI_API_KEY" # Substitua pela sua chave real ou use Secret Manager
+        - name: REDIS_URL
+          value: "redis://your-redis-instance-ip:6379" # Substitua pelo seu endpoint Redis
+        startupProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          failureThreshold: 3
+      serviceAccountName: default
+  traffic:
+  - percent: 100
+    latestRevision: true
+
