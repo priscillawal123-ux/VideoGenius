@@ -17,9 +17,13 @@
 import typing
 
 from google.cloud.bigquery import _helpers
-from google.cloud.bigquery.job.base import _AsyncJob, _JobConfig, _JobReference
 from google.cloud.bigquery.model import ModelReference
-from google.cloud.bigquery.table import Table, TableListItem, TableReference
+from google.cloud.bigquery.table import Table
+from google.cloud.bigquery.table import TableListItem
+from google.cloud.bigquery.table import TableReference
+from google.cloud.bigquery.job.base import _AsyncJob
+from google.cloud.bigquery.job.base import _JobConfig
+from google.cloud.bigquery.job.base import _JobReference
 
 
 class ExtractJobConfig(_JobConfig):

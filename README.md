@@ -2,7 +2,25 @@
 
 AI-powered video generation platform built with FastAPI and Google Cloud Platform.
 
-## � Biblioteca de Tecnologias
+# 🎬 Video Genius
+
+AI-powered video generation platform built with FastAPI and Google Cloud Platform.
+
+## 📊 NEW: Dashboard Roadmap Module
+
+🆕 **Project Dashboard with Real-time Updates** - Track project progress with interactive visualizations!
+
+- 📈 Timeline, Kanban, and Burndown views
+- 🔄 GitHub Issues synchronization (bidirectional)
+- ⚡ Real-time updates via Supabase
+- 📱 Responsive design (mobile, tablet, desktop)
+- 🎯 Analytics and metrics
+
+**Quick Start**: See [QUICK_START.md](./QUICK_START.md)  
+**Full Documentation**: See [DASHBOARD_README.md](./DASHBOARD_README.md)  
+**Status**: See [FINAL_STATUS_REPORT.md](./FINAL_STATUS_REPORT.md)
+
+## 📚 Biblioteca de Tecnologias
 
 **🚨 IMPORTANTE**: Antes de qualquer desenvolvimento, consulte nossa [Biblioteca de Tecnologias](./biblioteca/) que contém documentação completa e exemplos práticos para:
 
@@ -11,6 +29,26 @@ AI-powered video generation platform built with FastAPI and Google Cloud Platfor
 - **Cloud Code**: Desenvolvimento GCP, Kubernetes e Cloud Run
 
 **A biblioteca é obrigatória para todas as tarefas técnicas!** 📖
+
+## 🎯 Features
+
+- 🤖 AI-powered script generation using Vertex AI
+- 🎥 Automated video rendering
+- ☁️ Cloud storage integration (Google Cloud Storage)
+- 📊 Analytics and reporting (BigQuery)
+- 📈 **NEW**: Project dashboard with real-time tracking
+- 🔐 Secure authentication
+- 📱 RESTful API
+
+## 🛠️ Tech Stack
+
+- **Backend**: FastAPI (Python 3.11+)
+- **Frontend**: React 18 + TypeScript
+- **AI/ML**: Google Cloud Vertex AI (Gemini)
+- **Database**: Google BigQuery + Supabase PostgreSQL
+- **Storage**: Google Cloud Storage
+- **Deployment**: Google Cloud Run
+- **Real-time**: Supabase Realtime
 
 ## �🚀 Features
 
