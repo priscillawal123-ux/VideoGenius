@@ -13,6 +13,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from backend.api.routes.auth import router as auth_router
 from backend.api.routes.gcp import router as gcp_router
 from backend.api.routes.tasks import router as tasks_router
+from backend.api.routes.webhooks import router as webhooks_router
 # from backend.api.routes.videos import router as videos_router  # Legacy - modules don't exist
 from backend.core.config import get_settings
 from backend.core.exception_handlers import add_exception_handlers
@@ -120,6 +121,7 @@ def create_application() -> FastAPI:
     app.include_router(auth_router)
     app.include_router(gcp_router, prefix="/gcp", tags=["gcp"])
     app.include_router(tasks_router, tags=["tasks"])
+    app.include_router(webhooks_router, tags=["webhooks"])
     # app.include_router(videos_router)  # Legacy - modules don't exist
 
     @app.get("/")
