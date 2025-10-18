@@ -6,7 +6,19 @@ AI-powered video generation platform built with FastAPI and Google Cloud Platfor
 
 AI-powered video generation platform built with FastAPI and Google Cloud Platform.
 
-## 📊 NEW: Dashboard Roadmap Module
+## � Status: LIVE ON CLOUD RUN
+
+✅ **API is deployed and running!**  
+📍 Live at: https://video-genius-api-752423186317.us-central1.run.app  
+📋 See deployment details: [DEPLOYMENT_SUCCESS.md](./DEPLOYMENT_SUCCESS.md)
+
+```bash
+# Test the API
+curl https://video-genius-api-752423186317.us-central1.run.app/
+# Response: {"message":"Video Genius API","status":"running","version":"1.0.0"}
+```
+
+## 📊 Dashboard Roadmap Module
 
 🆕 **Project Dashboard with Real-time Updates** - Track project progress with interactive visualizations!
 
@@ -18,7 +30,7 @@ AI-powered video generation platform built with FastAPI and Google Cloud Platfor
 
 **Quick Start**: See [QUICK_START.md](./QUICK_START.md)  
 **Full Documentation**: See [DASHBOARD_README.md](./DASHBOARD_README.md)  
-**Status**: See [FINAL_STATUS_REPORT.md](./FINAL_STATUS_REPORT.md)
+**Deployment Details**: See [DEPLOYMENT_SUCCESS.md](./DEPLOYMENT_SUCCESS.md)
 
 ## 📚 Biblioteca de Tecnologias
 
