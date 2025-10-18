@@ -190,4 +190,5 @@ export const api = {
   },
 }
 
-export { API_URL, API_TIMEOUT, ApiError }
+export { API_URL, API_TIMEOUT }
+export type { ApiError }
