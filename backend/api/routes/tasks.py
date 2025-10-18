@@ -3,7 +3,7 @@ Task Management Routes for Dashboard Integration
 Supabase real-time synchronized tasks
 """
 
-from fastapi import APIRouter, HTTPException, status, Query
+from fastapi import APIRouter, HTTPException, Query, status
 from typing import List, Optional
 from pydantic import BaseModel
 from datetime import datetime
@@ -67,10 +67,10 @@ router = APIRouter(prefix="/api/v1/tasks", tags=["tasks"])
 # ENDPOINTS
 # ============================================================================
 
-@router.get("", response_model=List[TaskResponse])
+@router.get("")
 async def get_tasks(
     phase: Optional[str] = Query(None, description="Filter by phase"),
-    status: Optional[str] = Query(None, description="Filter by status"),
+    task_status: Optional[str] = Query(None, alias="status", description="Filter by status"),
     priority: Optional[str] = Query(None, description="Filter by priority"),
     assignee: Optional[str] = Query(None, description="Filter by assignee"),
 ) -> List[dict]:
@@ -85,24 +85,13 @@ async def get_tasks(
     try:
         from backend.database.supabase_client import supabase
         
-        logger.info(f"Fetching tasks - phase={phase}, status={status}")
+        logger.info(f"Fetching tasks - phase={phase}, status={task_status}")
         
-        query = supabase.table("video_tasks").select("*")
+        # Use SupabaseClient methods (async)
+        tasks = await supabase.get_tasks(phase=phase, task_status=task_status, priority=priority)
         
-        # Apply filters
-        if phase:
-            query = query.eq("phase", phase)
-        if status:
-            query = query.eq("status", status)
-        if priority:
-            query = query.eq("priority", priority)
-        if assignee:
-            query = query.eq("assignee", assignee)
-        
-        response = query.order("created_at", desc=True).execute()
-        
-        logger.info(f"Retrieved {len(response.data)} tasks")
-        return response.data
+        logger.info(f"Retrieved {len(tasks) if tasks else 0} tasks")
+        return tasks or []
         
     except Exception as e:
         logger.error(f"Error fetching tasks: {e}")
@@ -112,7 +101,7 @@ async def get_tasks(
         )
 
 
-@router.post("", response_model=TaskResponse, status_code=status.HTTP_201_CREATED)
+@router.post("")
 async def create_task(task_data: TaskCreate) -> dict:
     """Create a new task"""
     try:
@@ -121,13 +110,13 @@ async def create_task(task_data: TaskCreate) -> dict:
         logger.info(f"Creating task: {task_data.title}")
         
         task_dict = task_data.dict(exclude_unset=True)
-        response = supabase.table("video_tasks").insert(task_dict).execute()
+        result = await supabase.create_task(task_dict)
         
-        if not response.data:
+        if not result:
             raise ValueError("Failed to create task")
         
-        logger.info(f"Task created: {response.data[0]['id']}")
-        return response.data[0]
+        logger.info(f"Task created: {result['id']}")
+        return result
         
     except Exception as e:
         logger.error(f"Error creating task: {e}")
@@ -137,7 +126,37 @@ async def create_task(task_data: TaskCreate) -> dict:
         )
 
 
-@router.get("/{task_id}", response_model=TaskResponse)
+@router.get("/stats/summary")
+async def get_task_stats() -> dict:
+    """Get task statistics"""
+    try:
+        from backend.database.supabase_client import supabase
+        
+        logger.info("Fetching task statistics")
+        
+        stats = await supabase.get_task_stats()
+        
+        if "error" in stats:
+            raise Exception(stats.get("error"))
+        
+        return {
+            "total": stats.get("total_tasks", 0),
+            "completed": stats.get("completed_tasks", 0),
+            "in_progress": stats.get("in_progress_tasks", 0),
+            "blocked": stats.get("blocked_tasks", 0),
+            "todo": stats.get("todo_tasks", 0),
+            "progress_percentage": stats.get("completion_percentage", 0),
+        }
+        
+    except Exception as e:
+        logger.error(f"Error fetching stats: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error fetching stats: {str(e)}"
+        )
+
+
+@router.get("/{task_id}")
 async def get_task(task_id: str) -> dict:
     """Get a specific task by ID"""
     try:
@@ -145,15 +164,15 @@ async def get_task(task_id: str) -> dict:
         
         logger.info(f"Fetching task: {task_id}")
         
-        response = supabase.table("video_tasks").select("*").eq("id", task_id).execute()
+        result = await supabase.get_task(task_id)
         
-        if not response.data:
+        if not result:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Task {task_id} not found"
             )
         
-        return response.data[0]
+        return result
         
     except HTTPException:
         raise
@@ -165,7 +184,7 @@ async def get_task(task_id: str) -> dict:
         )
 
 
-@router.put("/{task_id}", response_model=TaskResponse)
+@router.put("/{task_id}")
 async def update_task(task_id: str, task_data: TaskUpdate) -> dict:
     """Update a task"""
     try:
@@ -179,16 +198,16 @@ async def update_task(task_id: str, task_data: TaskUpdate) -> dict:
         if not update_dict:
             raise ValueError("No fields to update")
         
-        response = supabase.table("video_tasks").update(update_dict).eq("id", task_id).execute()
+        result = await supabase.update_task(task_id, update_dict)
         
-        if not response.data:
+        if not result:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Task {task_id} not found"
             )
         
         logger.info(f"Task updated: {task_id}")
-        return response.data[0]
+        return result
         
     except HTTPException:
         raise
@@ -200,7 +219,7 @@ async def update_task(task_id: str, task_data: TaskUpdate) -> dict:
         )
 
 
-@router.delete("/{task_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{task_id}")
 async def delete_task(task_id: str) -> None:
     """Delete a task"""
     try:
@@ -208,9 +227,9 @@ async def delete_task(task_id: str) -> None:
         
         logger.info(f"Deleting task: {task_id}")
         
-        response = supabase.table("video_tasks").delete().eq("id", task_id).execute()
+        success = await supabase.delete_task(task_id)
         
-        if not response.data:
+        if not success:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Task {task_id} not found"
@@ -228,7 +247,7 @@ async def delete_task(task_id: str) -> None:
         )
 
 
-@router.get("/stats/summary", response_model=dict)
+@router.get("/stats/summary")
 async def get_task_stats() -> dict:
     """Get task statistics"""
     try:
@@ -236,24 +255,18 @@ async def get_task_stats() -> dict:
         
         logger.info("Fetching task statistics")
         
-        response = supabase.table("video_tasks").select("*").execute()
-        tasks = response.data
+        stats = await supabase.get_task_stats()
         
-        total = len(tasks)
-        completed = sum(1 for t in tasks if t["status"] == "completed")
-        in_progress = sum(1 for t in tasks if t["status"] == "in-progress")
-        blocked = sum(1 for t in tasks if t["status"] == "blocked")
-        todo = sum(1 for t in tasks if t["status"] == "todo")
-        
-        progress = (completed / total * 100) if total > 0 else 0
+        if "error" in stats:
+            raise Exception(stats.get("error"))
         
         return {
-            "total": total,
-            "completed": completed,
-            "in_progress": in_progress,
-            "blocked": blocked,
-            "todo": todo,
-            "progress_percentage": round(progress, 2),
+            "total": stats.get("total_tasks", 0),
+            "completed": stats.get("completed_tasks", 0),
+            "in_progress": stats.get("in_progress_tasks", 0),
+            "blocked": stats.get("blocked_tasks", 0),
+            "todo": stats.get("todo_tasks", 0),
+            "progress_percentage": stats.get("completion_percentage", 0),
         }
         
     except Exception as e:

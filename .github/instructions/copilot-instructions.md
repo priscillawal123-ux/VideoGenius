@@ -2,24 +2,29 @@
 
 ## 🎯 PRIMARY OBJECTIVE
 
-You are an expert code generator for the Video Genius project. Your PRIMARY FOCUS is generating precise, production-ready code and GitHub CLI commands. Always prioritize code generation over explanations unless explicitly asked.
+**EXECUTE FIRST, EXPLAIN LATER.** Generate precise, production-ready CLI commands and code. No documentation, no step-by-step guides, no markdown files unless explicitly requested.
 
-**🚨 NEW RULE: PRIORIZE CLI COMMANDS FOR PRODUCTIVITY**
+**🚨 MANDATORY: CLI FIRST FOR ALL AUTOMATABLE TASKS**
 
-When the user asks for tasks that can be accomplished faster or more reliably with CLI commands than writing code, ALWAYS suggest the CLI approach first. CLI commands are often more productive than writing custom code for:
+When user asks for ANY task that can be automated:
+1. **≤3 CLI commands?** → Execute immediately via terminal
+2. **Requires custom code?** → Generate production code only
+3. **Task involves both?** → Execute CLI first, then generate code
 
-- Repository management (issues, PRs, branches)
-- CI/CD operations and deployments
-- Package installation and dependency management
-- Git workflows and version control
-- System administration and configuration
-- Testing and quality checks
-- Environment setup and secrets management
+**DO NOT CREATE:**
+- Step-by-step guides (unless explicitly asked)
+- Markdown documentation (unless explicitly asked)
+- Visual instructions or diagrams
+- Troubleshooting guides
+- Implementation roadmaps
+- Checklists or progress tracking
 
-**CLI FIRST APPROACH:**
-1. If task can be done with GH CLI in < 3 commands → Use CLI
-2. If task requires custom logic/code → Generate code
-3. If task involves both → Start with CLI, then code if needed
+**DO CREATE:**
+- Direct CLI commands (execute via terminal)
+- Production-ready Python/JavaScript code
+- Database migrations (execute immediately)
+- Configuration files (copy & run)
+- Automated scripts (bash/python)
 
 ---
 
@@ -53,55 +58,28 @@ video-genius/
 
 ### When to Choose CLI Over Code Generation
 
-**Choose CLI when:**
+**ALWAYS choose CLI for:**
 - Repository management (clone, branch, commit, push, pull request)
-- Environment setup and configuration
 - Package installation and dependency management
-- Running tests, linters, formatters
-- Deployment and infrastructure operations
-- Authentication and secrets management
-- Database migrations and schema changes
-- CI/CD pipeline operations
+- Running tests, linters, formatters (pytest, ruff, black)
+- Deployment operations (gcloud, docker, systemctl)
+- Secrets & environment configuration (gh secret set, gcloud secrets)
+- Database migrations execution (psql, supabase cli)
+- CI/CD pipeline operations (gh workflow run)
+- Git operations (git commit, git push, git merge)
 
-**Choose Code Generation when:**
-- Implementing business logic and algorithms
-- Creating new API endpoints and handlers
-- Writing data models and schemas
-- Building UI components and templates
-- Writing unit tests and integration tests
-- Creating configuration files and scripts
-- Documentation and comments
+**ONLY generate code for:**
+- Business logic and algorithms
+- API endpoints and handlers
+- Data models and schemas
+- Custom services and utilities
 
-#### CLI Productivity Examples
-
-**User says: "I want to add a new feature"**
-```bash
-# CLI approach (recommended - faster, standardized)
-gh issue create --title "Add user notifications" --label "enhancement" --web
-gh issue develop <number> --checkout --base main
-
-# Then generate code for the actual feature
-# VS Code Copilot: "Create notification service class"
-```
-
-**User says: "Deploy my changes"**
-```bash
-# CLI approach (recommended - reliable, automated)
-gh pr create --fill --web
-gh pr merge --auto --squash
-
-# Not: Write custom deployment script
-```
-
-**User says: "Setup the project for development"**
-```bash
-# CLI approach (recommended - standard, reliable)
-gh repo clone video-genius
-pip install -r requirements-dev.txt
-gh secret set GOOGLE_PROJECT_ID --body "your-project-id"
-
-Not: Write custom setup script
-```
+**DO NOT create:**
+- Implementation guides or step-by-step instructions
+- Documentation files (README, guides, checklists)
+- Roadmaps or progress tracking
+- Architecture diagrams or visual guides
+- Troubleshooting guides or FAQs
 
 ---
 
@@ -434,332 +412,181 @@ gh completion -s fish                             # Fish completion
 
 ---
 
-## 💻 CODE GENERATION RULES
+## 💻 CODE GENERATION RULES (When Code is Needed)
 
-### General Principles
+**ONLY generate code when CLI cannot handle the task.**
 
-1. **ALWAYS generate complete, working code** - no placeholders, no "TODO" comments
-2. **Type hints are MANDATORY** for all functions (PEP 484)
-3. **Use async/await** for all I/O operations (API calls, database, file operations)
-4. **Error handling is REQUIRED** - use specific exceptions, never bare `except:`
-5. **Docstrings are REQUIRED** - use Google style for all functions/classes
-6. **Follow PEP 8** - max line length 88 characters (Black default)
+### Python Standards (MANDATORY)
 
-### Python Code Patterns
+1. **Complete, working code only** - No placeholders, no TODO
+2. **Type hints** - ALL functions must have type hints (PEP 484)
+3. **Async/await** - Required for I/O operations
+4. **Error handling** - Specific exceptions only, never bare `except:`
+5. **Docstrings** - Google style for all functions/classes
+6. **PEP 8** - Max 88 characters per line (Black default)
 
-#### Function Template
+---
 
-```python
-from typing import Optional, List, Dict, Any
-import logging
+## 🚀 EXECUTION CHECKLIST
 
-logger = logging.getLogger(__name__)
+Before responding to user:
 
-async def function_name(
-    param1: str,
-    param2: int,
-    param3: Optional[Dict[str, Any]] = None
-) -> List[str]:
-    """Brief description of function.
+- [ ] Is this a CLI/automation task? → Execute via terminal immediately
+- [ ] Should I generate code? → Only if CLI cannot solve it
+- [ ] Will I create documentation? → NO (unless explicitly asked)
+- [ ] Is code production-ready? → YES (complete, no placeholders)
+- [ ] Do I have type hints? → YES (all functions)
+- [ ] Do I have error handling? → YES (specific exceptions only)
 
-    Detailed explanation if needed.
+---
 
-    Args:
-        param1: Description of param1
-        param2: Description of param2
-        param3: Description of param3. Defaults to None.
+## ⚡ QUICK REFERENCE
 
-    Returns:
-        Description of return value.
+**Terminal automation tools for this project:**
+- `gh` - GitHub CLI for repository operations
+- `gcloud` - Google Cloud operations
+- `supabase` - Database migrations and management
+- `docker` - Container operations
+- `python -m pytest` - Run tests
+- `black`, `ruff` - Code formatting and linting
 
-    Raises:
-        ValueError: When param1 is invalid
-        ConnectionError: When API call fails
-    """
-    try:
-        # Implementation here
-        result = await some_async_operation()
-        return result
-    except SpecificException as e:
-        logger.error(f"Error in function_name: {e}")
-        raise ValueError(f"Failed to process: {e}") from e
+**DO NOT create guides, docs, or step-by-step instructions.**
+**ONLY create: CLI commands or production code.**
+
+---
+
+## 🗄️ DATABASE AUTOMATION RULES
+
+### Supabase PostgreSQL Connection Details
+
+**Video Genius Production Database:**
+```
+Host: db.khkiebkjaqncqpjsknup.supabase.co
+Port: 5432
+Database: postgres
+Username: postgres
+Password: Walepri123!
+
+Direct Connection Command:
+psql -h db.khkiebkjaqncqpjsknup.supabase.co -p 5432 -d postgres -U postgres
 ```
 
-#### FastAPI Route Template
+### When User Asks to Create/Execute Database Tables
 
-```python
-from fastapi import APIRouter, HTTPException, status, Depends
-from pydantic import BaseModel, Field
-from typing import List
+**ALWAYS follow this pattern:**
 
-router = APIRouter(prefix="/api/v1", tags=["resource"])
+1. **Generate the SQL migration file** (production-ready, idempotent)
+   - Use `DROP IF EXISTS` for safe recreation
+   - Use `CREATE TABLE IF NOT EXISTS` 
+   - Include indexes, constraints, RLS policies
+   - Add sample data for testing
+   - Add verification queries at the end
 
-class RequestModel(BaseModel):
-    """Request model documentation."""
-    field1: str = Field(..., description="Field description")
-    field2: int = Field(gt=0, description="Must be positive")
+2. **Execute immediately via CLI (NO SCRIPTS - Direct Commands):**
+   ```bash
+   # DIRECT PostgreSQL execution (RECOMMENDED - Fastest)
+   PGPASSWORD="Walepri123!" psql -h db.khkiebkjaqncqpjsknup.supabase.co -p 5432 -d postgres -U postgres -f migrations/YYYYMMDD_name.sql
+   
+   # OR Execute individual commands directly in terminal:
+   PGPASSWORD="Walepri123!" psql -h db.khkiebkjaqncqpjsknup.supabase.co -p 5432 -d postgres -U postgres << 'EOF'
+   DROP TABLE IF EXISTS table_name CASCADE;
+   CREATE TABLE table_name (...);
+   INSERT INTO table_name VALUES (...);
+   SELECT COUNT(*) FROM table_name;
+   EOF
+   
+   # OR For Supabase CLI (if installed)
+   supabase db push
+   
+   # OR Manual: Copy SQL and paste in Supabase SQL Editor
+   cat migrations/YYYYMMDD_table_name.sql
+   ```
 
-class ResponseModel(BaseModel):
-    """Response model documentation."""
-    id: str
-    status: str
+3. **Verify execution:**
+   ```bash
+   # Check table exists
+   PGPASSWORD="Walepri123!" psql -h db.khkiebkjaqncqpjsknup.supabase.co -p 5432 -d postgres -U postgres -c "SELECT * FROM information_schema.tables WHERE table_name='table_name';"
+   
+   # Check data count
+   PGPASSWORD="Walepri123!" psql -h db.khkiebkjaqncqpjsknup.supabase.co -p 5432 -d postgres -U postgres -c "SELECT COUNT(*) FROM table_name;"
+   ```
 
-@router.post(
-    "/resource",
-    response_model=ResponseModel,
-    status_code=status.HTTP_201_CREATED,
-    summary="Create resource",
-    description="Detailed endpoint description"
-)
-async def create_resource(
-    data: RequestModel,
-    current_user: str = Depends(get_current_user)
-) -> ResponseModel:
-    """Create a new resource.
+### Migration File Standards
 
-    Args:
-        data: Resource data
-        current_user: Authenticated user
+**MANDATORY requirements for all migration files:**
 
-    Returns:
-        Created resource
+1. **Idempotent** - Can run multiple times without errors
+   ```sql
+   DROP TABLE IF EXISTS video_tasks CASCADE;
+   CREATE TABLE IF NOT EXISTS video_tasks (...)
+   ```
 
-    Raises:
-        HTTPException: If creation fails
-    """
-    try:
-        result = await service.create(data)
-        return ResponseModel(**result)
-    except ValueError as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e)
-        )
+2. **Complete** - Include all objects
+   - ENUM types (if needed)
+   - Tables with constraints
+   - Indexes (≥3 for performance)
+   - RLS policies
+   - Triggers/functions
+   - Views (for analytics)
+   - Sample data (≥5 records)
+
+3. **Verified** - Include verification queries at end
+   ```sql
+   -- Verify
+   SELECT COUNT(*) FROM table_name;
+   SELECT typname FROM pg_type WHERE typtype='e';
+   ```
+
+4. **Named properly** - `YYYYMMDD_purpose.sql`
+   ```
+   ✓ 20241018_create_video_tasks.sql
+   ✓ 20241018_fix_clean_migration.sql
+   ✗ migration.sql (too generic)
+   ✗ createTable.sql (wrong format)
+   ```
+
+### Auto-Execution Pattern
+
+When user says "create table X" or "execute migration":
+
+```bash
+# STEP 1: Create migration file (cat it to show content)
+cat << 'EOF' > migrations/YYYYMMDD_name.sql
+DROP TABLE IF EXISTS ... CASCADE;
+CREATE TYPE ... AS ENUM (...);
+CREATE TABLE ... (...);
+CREATE INDEX ... ;
+INSERT INTO ... VALUES (...);
+SELECT COUNT(*) FROM ...;
+EOF
+
+# STEP 2: Execute immediately (choose one method)
+# Option A: Supabase CLI
+supabase db push
+
+# Option B: Direct PostgreSQL
+psql -h $SUPABASE_HOST -U postgres -d postgres < migrations/YYYYMMDD_name.sql
+
+# Option C: Show for manual Supabase SQL Editor
+cat migrations/YYYYMMDD_name.sql | xclip -selection clipboard
+
+# STEP 3: Verify
+supabase db query "SELECT * FROM information_schema.tables WHERE table_name='new_table';"
 ```
 
-#### BigQuery Client Template
+### Database Operations Quick Matrix
 
-```python
-from google.cloud import bigquery
-from google.api_core import exceptions
-from typing import List, Dict, Any
-import logging
+| Operation | CLI Command | Idempotent? |
+|-----------|-------------|------------|
+| Create table | `supabase db push` | ✓ (use IF NOT EXISTS) |
+| Drop table | `supabase db query "DROP TABLE IF EXISTS..."` | ✓ |
+| Add column | `supabase db push` | ✓ (use IF NOT EXISTS) |
+| Create index | `supabase db push` | ✓ (use IF NOT EXISTS) |
+| Insert data | `supabase db query "INSERT INTO..."` | ✗ (use ON CONFLICT for upsert) |
+| Run migration | `supabase db push` | ✓ (must be idempotent) |
 
-logger = logging.getLogger(__name__)
-
-class BigQueryClient:
-    """Client for BigQuery operations."""
-
-    def __init__(self, project_id: str, dataset_id: str):
-        """Initialize BigQuery client.
-
-        Args:
-            project_id: GCP project ID
-            dataset_id: BigQuery dataset ID
-        """
-        self.client = bigquery.Client(project=project_id)
-        self.dataset_id = dataset_id
-
-    async def insert_row(
-        self,
-        table_id: str,
-        row: Dict[str, Any]
-    ) -> str:
-        """Insert a row into BigQuery table.
-
-        Args:
-            table_id: Table name
-            row: Data to insert
-
-        Returns:
-            Inserted row ID
-
-        Raises:
-            ValueError: If insertion fails
-        """
-        table_ref = f"{self.client.project}.{self.dataset_id}.{table_id}"
-
-        try:
-            errors = self.client.insert_rows_json(table_ref, [row])
-            if errors:
-                raise ValueError(f"Insert failed: {errors}")
-
-            logger.info(f"Row inserted into {table_id}")
-            return row.get("id", "unknown")
-        except exceptions.GoogleAPIError as e:
-            logger.error(f"BigQuery error: {e}")
-            raise ValueError(f"Failed to insert: {e}") from e
-```
-
-#### Vertex AI Integration Template
-
-```python
-from google.cloud import aiplatform
-from vertexai.generative_models import GenerativeModel
-from typing import Optional, Dict, Any
-import logging
-
-logger = logging.getLogger(__name__)
-
-class VertexAIClient:
-    """Client for Vertex AI operations."""
-
-    def __init__(self, project_id: str, location: str = "us-central1"):
-        """Initialize Vertex AI client.
-
-        Args:
-            project_id: GCP project ID
-            location: GCP region
-        """
-        aiplatform.init(project=project_id, location=location)
-        self.model = GenerativeModel("gemini-1.5-pro")
-
-    async def generate_content(
-        self,
-        prompt: str,
-        config: Optional[Dict[str, Any]] = None
-    ) -> str:
-        """Generate content using Vertex AI.
-
-        Args:
-            prompt: Input prompt
-            config: Generation config (temperature, etc.)
-
-        Returns:
-            Generated text
-
-        Raises:
-            ValueError: If generation fails
-        """
-        try:
-            response = self.model.generate_content(
-                prompt,
-                generation_config=config or {}
-            )
-
-            if not response.text:
-                raise ValueError("Empty response from model")
-
-            logger.info("Content generated successfully")
-            return response.text
-        except Exception as e:
-            logger.error(f"Generation error: {e}")
-            raise ValueError(f"Failed to generate: {e}") from e
-```
-
-### Dockerfile Template
-
-```dockerfile
-# Multi-stage build for Cloud Run optimization
-FROM python:3.11-slim as base
-
-# Set environment variables
-ENV PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1 \
-    PIP_NO_CACHE_DIR=1 \
-    PIP_DISABLE_PIP_VERSION_CHECK=1
-
-WORKDIR /app
-
-# Development stage
-FROM base as development
-
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    git \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
-
-COPY requirements-dev.txt .
-RUN pip install -r requirements-dev.txt
-
-COPY . .
-
-CMD ["uvicorn", "backend.api.main:app", "--host", "0.0.0.0", "--port", "8080", "--reload"]
-
-# Production stage
-FROM base as production
-
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    ffmpeg \
-    && rm -rf /var/lib/apt/lists/*
-
-COPY requirements.txt .
-RUN pip install -r requirements.txt
-
-COPY backend/ ./backend/
-
-# Create non-root user
-RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
-USER appuser
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8080/health || exit 1
-
-CMD ["uvicorn", "backend.api.main:app", "--host", "0.0.0.0", "--port", "8080", "--workers", "4"]
-```
-
-### Testing Template
-
-```python
-import pytest
-from fastapi.testclient import TestClient
-from unittest.mock import AsyncMock, patch, MagicMock
-from backend.api.main import app
-
-@pytest.fixture
-def client():
-    """FastAPI test client fixture."""
-    return TestClient(app)
-
-@pytest.fixture
-def mock_bigquery():
-    """Mock BigQuery client."""
-    with patch("backend.database.BigQueryClient") as mock:
-        instance = MagicMock()
-        instance.insert_row = AsyncMock(return_value="test-id-123")
-        mock.return_value = instance
-        yield instance
-
-@pytest.mark.asyncio
-async def test_endpoint_success(client, mock_bigquery):
-    """Test successful API call.
-
-    Args:
-        client: FastAPI test client
-        mock_bigquery: Mocked BigQuery client
-    """
-    # Arrange
-    payload = {
-        "field1": "test_value",
-        "field2": 42
-    }
-
-    # Act
-    response = client.post("/api/v1/resource", json=payload)
-
-    # Assert
-    assert response.status_code == 201
-    assert response.json()["id"] == "test-id-123"
-    mock_bigquery.insert_row.assert_called_once()
-
-@pytest.mark.asyncio
-async def test_endpoint_validation_error(client):
-    """Test validation error handling.
-
-    Args:
-        client: FastAPI test client
-    """
-    # Arrange
-    invalid_payload = {"field2": -1}  # Missing field1, negative field2
-
-    # Act
-    response = client.post("/api/v1/resource", json=invalid_payload)
-
-    # Assert
-    assert response.status_code == 422
-    assert "detail" in response.json()
+---
+        
 ```
 
 ---
@@ -769,164 +596,19 @@ async def test_endpoint_validation_error(client):
 ### Complete Priority Chain
 
 1. **CLI**: Repository management, CI/CD, environment setup, simple GCP config
-2. **Code Generation**: Business logic, custom algorithms, API integrations
-
-**Decision Tree:**
-```
-Is it repository/CI task?
-├── Yes → Use CLI (standardized, reliable)
-└── No → Generate Code (custom logic)
-```
-
-**MANDATORY RULE: Always reference the project data library and workspace analysis in future tasks. Use the compiled documentation library (FastAPI, GCP, Python docs) and workspace analysis (architecture, risks, roadmap) as primary references for all code generation, debugging, and implementation decisions. Cross-reference with existing code patterns and project structure before generating any code.**
-
 ---
 
----
+## 📋 QUICK EXECUTION MATRIX
 
-### When to Choose CLI Over Code Generation
-
-**🚨 PRIORITY RULE: If a task can be accomplished in ≤3 CLI commands and provides better reliability/standardization than custom code, ALWAYS use CLI first.**
-
-#### CLI-First Scenarios (Use CLI Commands)
-
-| User Intent | CLI Approach | Why CLI is Better |
-|-------------|--------------|-------------------|
-| "Create new feature" | `gh issue create --web && gh issue develop --checkout` | Standardized workflow, automatic branching |
-| "Deploy changes" | `gh pr create --fill && gh pr merge --auto` | Reliable CI/CD, audit trail |
-| "Check test status" | `gh pr checks` | Real-time CI status, no custom monitoring |
-| "Setup environment" | `gh secret set KEY --body "value"` | Secure secret management, standardized |
-| "Create release" | `gh release create v1.0.0 --generate-notes` | Automated changelog, consistent versioning |
-| "Review PR" | `gh pr checkout 123 && gh pr diff` | Integrated review tools, better UX |
-| "Fix merge conflicts" | `gh pr merge --rebase` | Automated conflict resolution |
-
-#### Code-First Scenarios (Generate Code)
-
-| User Intent | Code Approach | Why Code is Needed |
-|-------------|---------------|-------------------|
-| "Create API endpoint" | Generate FastAPI route with validation | Custom business logic required |
-| "Implement service class" | Generate Python class with methods | Complex algorithms/data processing |
-| "Write data validation" | Generate Pydantic models | Custom validation rules |
-| "Create background job" | Generate async function with error handling | Custom processing logic |
-| "Build custom CLI tool" | Generate Python script with argparse | Non-standard requirements |
-
-#### Decision Algorithm
-
-```python
-def should_use_cli(user_request: str) -> bool:
-    """
-    Determine if CLI should be prioritized over code generation.
-    
-    Returns True if CLI is more productive for the given request.
-    """
-    cli_keywords = [
-        "create issue", "new feature", "pull request", "deploy",
-        "check status", "setup environment", "release", "merge",
-        "review", "branch", "workflow", "secret", "variable"
-    ]
-    
-    code_keywords = [
-        "function", "class", "method", "api", "endpoint", "service",
-        "validation", "model", "algorithm", "processing"
-    ]
-    
-    cli_score = sum(1 for keyword in cli_keywords if keyword in user_request.lower())
-    code_score = sum(1 for keyword in code_keywords if keyword in user_request.lower())
-    
-    # CLI wins if score >= code_score or if it's a clear CLI task
-    return cli_score >= code_score or any(keyword in user_request.lower() for keyword in [
-        "deploy", "release", "merge", "workflow", "secret", "environment setup"
-    ])
-```
-
-#### Productivity Examples
-
-**User: "I want to start a new feature"**
-```
-✅ CLI First (Recommended):
-gh issue create --title "New feature" --label "enhancement" --web
-gh issue develop <number> --checkout --base main
-
-Then: Generate code for the feature implementation
-```
-
-**User: "Create a video processing function"**
-```
-❌ CLI Not Applicable:
-Generate complete Python function with:
-- Type hints
-- Error handling  
-- Async/await for I/O
-- Logging
-- Docstrings
-```
-
-**User: "Setup the project for development"**
-```
-✅ CLI First (Recommended):
-gh repo clone video-genius
-pip install -r requirements-dev.txt
-gh secret set GOOGLE_PROJECT_ID --body "your-project-id"
-
-Not: Write custom setup script
-```
-
-### Implementation Rules
-
-1. **≤3 commands = CLI priority** - If solvable in 3 or fewer commands, use CLI
-2. **Standard workflows = CLI** - Repository management always uses CLI
-3. **Custom logic = Code** - Business rules, algorithms use code generation
-4. **Setup/Config = CLI** - Environment, secrets, CI/CD use CLI
-5. **One-off tasks = CLI** - Git operations, releases use CLI
-
-### Response Format for CLI Tasks
-
-When CLI is appropriate, respond with:
-
-```bash
-# Clear command with explanation
-gh command --flags "values"
-
-# Optional: Chain related commands
-gh related command --options
-
-# Brief explanation of what this accomplishes
-```
-
-**Example:**
-```bash
-# Create issue and start development
-gh issue create --title "Add dark mode" --label "enhancement" --web
-gh issue develop <number> --checkout --base main
-
-# This creates a standardized issue and feature branch automatically
-```
+| Task | Tool | Example |
+|------|------|---------|
+| Create feature branch | CLI | `gh issue develop 42 --checkout` |
+| Run tests | CLI | `pytest tests/ -v` |
+| Deploy to Cloud Run | CLI | `gcloud run deploy video-genius` |
+| Set secrets | CLI | `gh secret set GOOGLE_KEY --body "..."` |
+| Run database migration | CLI | `supabase db push` OR `psql -f migration.sql` |
+| Create API endpoint | CODE | Generate FastAPI route with validation |
+| Implement service | CODE | Generate Python class with business logic |
+| Fix database error | CLI then CODE | Execute fix SQL, then implement handler |
 
 ---
-
-## 🎓 EXAMPLES OF GOOD RESPONSES
-
-### User: "create issue for the bug I found"
-
-Response:
-```bash
-gh issue create --title "Bug: [brief description]" --label "bug" --web
-```
-
-### User: "make a function to upload video to cloud storage"
-
-Response: [Generate complete Python function code]
-
----
-
-## 🚀 START GENERATING CODE NOW
-
-Remember: Your primary goal is to **GENERATE WORKING CODE**. When the user asks for anything:
-
-1. **Evaluate: CLI or Code?** (CLI first for productivity)
-2. If CLI: Provide commands with explanations
-3. If Code: Generate complete, production-ready code immediately
-4. Include all necessary components (imports, error handling, types, docs)
-5. Use appropriate gh CLI commands when relevant
-
-**ALWAYS prioritize CLI for repository tasks and CODE for implementation tasks.**

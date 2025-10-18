@@ -1,0 +1,57 @@
+[Unit]
+Description=Video Genius Frontend Service (React + Vite)
+Documentation=https://videogenius.com.br/docs
+After=network.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=walland
+Group=walland
+WorkingDirectory=/home/walland/Downloads/Video-Genius/frontend
+
+# Environment variables
+Environment="NODE_ENV=production"
+Environment="VITE_API_URL=https://api.videogenius.com.br"
+Environment="PORT=3000"
+EnvironmentFile=/home/walland/Downloads/Video-Genius/.env.production
+
+# Node and npm paths
+Environment="PATH=/home/walland/Downloads/Video-Genius/frontend/node_modules/.bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin"
+
+# Start command
+ExecStart=/usr/bin/node /home/walland/Downloads/Video-Genius/frontend/dist/server.js
+
+# Pre-start hook to ensure build is fresh
+ExecStartPre=/usr/bin/npm run build
+
+# Restart policy
+Restart=always
+RestartSec=10
+StartLimitInterval=60
+StartLimitBurst=3
+
+# Process management
+KillMode=mixed
+KillSignal=SIGTERM
+TimeoutStopSec=30
+
+# Resource limits
+LimitNOFILE=65536
+LimitNPROC=65536
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=video-genius-frontend
+
+# Security
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+ReadWritePaths=/home/walland/Downloads/Video-Genius/frontend
+
+[Install]
+WantedBy=multi-user.target

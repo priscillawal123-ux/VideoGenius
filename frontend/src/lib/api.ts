@@ -6,6 +6,29 @@
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 const API_TIMEOUT = parseInt(import.meta.env.VITE_API_TIMEOUT || '30000')
 
+export interface Task {
+  id: string
+  title: string
+  phase: string
+  status: 'todo' | 'in-progress' | 'completed' | 'blocked'
+  priority: 'low' | 'medium' | 'high' | 'critical'
+  assignee?: string
+  due_date?: string
+  completed_date?: string
+  description?: string
+  created_at: string
+  updated_at: string
+}
+
+export interface TaskStats {
+  total: number
+  completed: number
+  in_progress: number
+  blocked: number
+  todo: number
+  progress_percentage: number
+}
+
 interface ApiError {
   status: number
   message: string
@@ -78,43 +101,49 @@ export const api = {
     return apiRequest('/')
   },
 
-  // Dashboard Stats
-  async getStats() {
-    return apiRequest('/api/v1/dashboard/stats')
+  // Tasks - Real API endpoints
+  async getTasks(filters?: { phase?: string; status?: string; priority?: string }) {
+    const params = new URLSearchParams()
+    if (filters?.phase) params.append('phase', filters.phase)
+    if (filters?.status) params.append('status', filters.status)
+    if (filters?.priority) params.append('priority', filters.priority)
+    
+    const query = params.toString() ? `?${params.toString()}` : ''
+    return apiRequest(`/api/v1/tasks${query}`)
   },
 
-  async getPhases() {
-    return apiRequest('/api/v1/dashboard/phases')
-  },
-
-  // Tasks
-  async getTasks() {
-    return apiRequest('/api/v1/dashboard/tasks')
+  async getTask(id: string) {
+    return apiRequest(`/api/v1/tasks/${id}`)
   },
 
   async createTask(task: any) {
-    return apiRequest('/api/v1/dashboard/tasks', {
+    return apiRequest('/api/v1/tasks', {
       method: 'POST',
       body: JSON.stringify(task),
     })
   },
 
   async updateTask(id: string, updates: any) {
-    return apiRequest(`/api/v1/dashboard/tasks/${id}`, {
-      method: 'PATCH',
+    return apiRequest(`/api/v1/tasks/${id}`, {
+      method: 'PUT',
       body: JSON.stringify(updates),
     })
   },
 
   async deleteTask(id: string) {
-    return apiRequest(`/api/v1/dashboard/tasks/${id}`, {
+    return apiRequest(`/api/v1/tasks/${id}`, {
       method: 'DELETE',
     })
   },
 
+  // Task Statistics
+  async getTaskStats() {
+    return apiRequest('/api/v1/tasks/stats/summary')
+  },
+
   // GitHub Sync
   async syncGitHub() {
-    return apiRequest('/api/v1/dashboard/sync-github', {
+    return apiRequest('/api/v1/github/sync', {
       method: 'POST',
     })
   },
@@ -154,6 +183,10 @@ export const api = {
 
   async getSecret(id: string) {
     return apiRequest(`/gcp/secret/${id}`)
+  },
+
+  async getBuckets() {
+    return apiRequest('/gcp/buckets')
   },
 }
 

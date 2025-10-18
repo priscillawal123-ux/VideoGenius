@@ -1,0 +1,50 @@
+[Unit]
+Description=Video Genius Backend API Service
+Documentation=https://videogenius.com.br/docs
+After=network.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=walland
+Group=walland
+WorkingDirectory=/home/walland/Downloads/Video-Genius
+
+# Environment variables
+EnvironmentFile=/home/walland/Downloads/Video-Genius/.env.production
+
+# Virtual environment activation
+Environment="PATH=/home/walland/Downloads/Video-Genius/.venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin"
+
+# Start command
+ExecStart=/home/walland/Downloads/Video-Genius/.venv/bin/python -m uvicorn backend.api.main:app --host 0.0.0.0 --port 8000 --workers 4 --loop uvloop --http httptools
+
+# Restart policy
+Restart=always
+RestartSec=10
+StartLimitInterval=60
+StartLimitBurst=3
+
+# Process management
+KillMode=mixed
+KillSignal=SIGTERM
+TimeoutStopSec=30
+
+# Resource limits
+LimitNOFILE=65536
+LimitNPROC=65536
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=video-genius-api
+
+# Security
+NoNewPrivileges=false
+ProtectSystem=no
+ProtectHome=false
+PrivateTmp=false
+PrivateDevices=false
+
+[Install]
+WantedBy=multi-user.target
