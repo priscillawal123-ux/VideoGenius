@@ -4,7 +4,18 @@ Main FastAPI application for Video Genius with Google Cloud optimizations.
 
 import asyncio
 import logging
+import os
+from pathlib import Path
 from contextlib import asynccontextmanager
+
+# Load .env before anything else
+try:
+    from dotenv import load_dotenv
+    env_path = Path(__file__).parent.parent.parent / ".env"
+    if env_path.exists():
+        load_dotenv(env_path)
+except ImportError:
+    pass
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
