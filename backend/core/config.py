@@ -86,8 +86,11 @@ class Settings(BaseSettings):
     cors_origins: List[str] = Field(
         default_factory=lambda: [
             "http://localhost:3000",
+            "http://localhost:5173",
             "http://localhost:8080",
             "https://video-genius.com",
+            "https://videogenius.com.br",
+            "https://www.videogenius.com.br",
         ]
     )
 
