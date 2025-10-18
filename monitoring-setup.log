@@ -1,0 +1,62 @@
+[0;34m╔════════════════════════════════════════════════════════════╗[0m
+[0;34m║     Cloud Logging & Monitoring Setup                      ║[0m
+[0;34m╚════════════════════════════════════════════════════════════╝[0m
+
+[1;33m[1/7][0m Checking GCP authentication...
+[0;32m✅ GCP authentication verified[0m
+
+[1;33m[2/7][0m Setting GCP project to video-genius-prod-v1...
+[0;32m✅ Project set to video-genius-prod-v1[0m
+
+[1;33m[3/7][0m Enabling required Google Cloud APIs...
+  • Cloud Logging API
+  • Cloud Error Reporting API
+  • Cloud Monitoring API
+  • Cloud Run API
+[0;32m✅ APIs enabled[0m
+
+[1;33m[4/7][0m Creating log sink for archival...
+  Bucket already exists: gs://video-genius-prod-v1-logs-archive
+  Creating log sink: video-genius-logs-sink
+[0;32m✅ Log sink created/updated[0m
+
+[1;33m[5/7][0m Creating monitoring dashboard...
+[0;32m✅ Monitoring dashboard created[0m
+
+[1;33m[6/7][0m Creating alert policies...
+  Creating alert: High Error Rate (>5%)
+[0;32m✅ Alert policies configured (waiting for notification channels)[0m
+
+[1;33m[7/7][0m Creating custom log-based metrics...
+  Creating metric: Task Operations Count
+[1;33m⚠️  Metric may already exist[0m
+  Creating metric: API Errors
+[1;33m⚠️  Metric may already exist[0m
+[0;32m✅ Custom metrics created[0m
+
+[0;34m╔════════════════════════════════════════════════════════════╗[0m
+[0;34m║              ✅ Monitoring Setup Complete                 ║[0m
+[0;34m╚════════════════════════════════════════════════════════════╝[0m
+
+[0;32mConfigured Services:[0m
+  ✅ Cloud Logging         - Real-time log streaming
+  ✅ Error Reporting       - Automatic error detection
+  ✅ Monitoring Dashboard  - Visual metrics
+  ✅ Log Archival          - Storage bucket: gs://video-genius-prod-v1-logs-archive
+  ✅ Alert Policies        - Error rate monitoring
+  ✅ Custom Metrics        - Task operations & errors
+
+[1;33mNext Steps:[0m
+  1. Access Cloud Console: https://console.cloud.google.com
+  2. Navigate to Logging → Dashboards
+  3. Search for: 'Video Genius Production'
+  4. Set up notification channels for alerts
+  5. Monitor logs in real-time
+
+[1;33mUseful Commands:[0m
+  • View logs:           gcloud logging read 'resource.type=cloud_run_revision' --limit 50
+  • View errors:         gcloud logging read 'severity=ERROR' --limit 20
+  • Stream logs:         gcloud logging read 'resource.type=cloud_run_revision' --follow
+  • View dashboard:      gcloud monitoring dashboards list
+
+

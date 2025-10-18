@@ -1,0 +1,19 @@
+[0;34m╔════════════════════════════════════════════════════════════╗[0m
+[0;34m║         Video Genius - Cloud Run Deployment                ║[0m
+[0;34m╚════════════════════════════════════════════════════════════╝[0m
+[1;33m⚠️  .env.prod not found, using defaults[0m
+
+[1;33m[1/4] Checking authentication...[0m
+[0;32m✅ Authenticated[0m
+
+[1;33m[2/4] Setting GCP project...[0m
+Updated property [core/project].
+[0;32m✅ Project set to video-genius-prod-v1[0m
+
+[1;33m[3/4] Deploying Backend Service...[0m
+ERROR: (gcloud.run.deploy) unrecognized arguments:
+  SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9,
+  SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9,
+  ENVIRONMENT=production (did you mean '--execution-environment'?)
+  To search the help text of gcloud commands, run:
+  gcloud help -- SEARCH_TERMS
