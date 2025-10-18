@@ -5,6 +5,7 @@
 
 import React, { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import { apiRequest } from '@/lib/api'
 import './DashboardRoadmap.css'
 
 // ============================================================================
@@ -205,6 +206,40 @@ export function DashboardRoadmap() {
   const [realtimeUpdates, setRealtimeUpdates] = useState<RealtimeUpdate[]>([])
   const [filterStatus, setFilterStatus] = useState<string>('all')
   const [viewMode, setViewMode] = useState<'timeline' | 'kanban' | 'burndown'>('timeline')
+
+  // =========================================================================
+  // LOAD TASKS FROM API
+  // =========================================================================
+
+  useEffect(() => {
+    const loadTasksFromAPI = async () => {
+      try {
+        // Try to fetch from API
+        const response = await fetch('/api/v1/tasks')
+        if (response.ok) {
+          const apiTasks = await response.json()
+          // Map API response to Task format
+          const mappedTasks = apiTasks.map((t: any) => ({
+            id: t.id,
+            title: t.title,
+            phase: t.phase || 'phase-1',
+            status: t.status || 'todo',
+            priority: t.priority || 'medium',
+            assignee: t.assignee,
+            dueDate: t.due_date,
+            completedDate: t.completed_date,
+          }))
+          setTasks(mappedTasks)
+          console.log(`✅ Loaded ${mappedTasks.length} tasks from API`)
+        }
+      } catch (error) {
+        console.warn('ℹ️  Could not load tasks from API, using sample data:', error)
+        // Fallback to INITIAL_TASKS already set
+      }
+    }
+
+    loadTasksFromAPI()
+  }, [])
 
   // =========================================================================
   // CALCULAR ESTATÍSTICAS
