@@ -13,6 +13,7 @@ passlib[bcrypt]==1.7.4
 PyJWT==2.10.1
 python-jose[cryptography]==3.3.0
 python-multipart==0.0.17
+dependency-injector==4.41.0
 JSON-log-formatter==0.5.2
 uvloop==0.20.0
 google-cloud-bigquery==3.13.0
