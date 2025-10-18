@@ -645,3 +645,5 @@ function BurndownChart({ tasks, phases }: BurndownChartProps) {
     </div>
   )
 }
+
+export default DashboardRoadmap
