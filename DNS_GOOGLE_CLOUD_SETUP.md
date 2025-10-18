@@ -60,44 +60,39 @@ ns-cloud-b4.googledomains.com.
 
 ## 📝 Adicionar Registros DNS
 
-### 1️⃣ Registro A para o Apex (raiz)
+### ✅ **CONFIGURAÇÃO CORRETA** - Registros A com IP do Cloud Run
+
+**IP DO CLOUD RUN:** `34.143.74.2` (use este endereço!)
 
 ```bash
-# Obter IP do Cloud Run
-CLOUD_RUN_IP=$(gcloud run services describe video-genius-api \
-  --region us-central1 \
-  --format='value(status.loadBalancer.ingress[0].ipAddress)')
-
-echo "IP: $CLOUD_RUN_IP"
-
-# Adicionar registro A (apontando para IP do Cloud Run)
+# 1. Registro A para o apex (raiz)
 gcloud dns record-sets create videogenius.com.br. \
-  --rrdatas="$CLOUD_RUN_IP" \
+  --rrdatas="34.143.74.2" \
+  --ttl=300 \
+  --type=A \
+  --zone=videogenius-dns
+
+# 2. Registro A para API
+gcloud dns record-sets create api.videogenius.com.br. \
+  --rrdatas="34.143.74.2" \
+  --ttl=300 \
+  --type=A \
+  --zone=videogenius-dns
+
+# 3. Registro A para WWW
+gcloud dns record-sets create www.videogenius.com.br. \
+  --rrdatas="34.143.74.2" \
   --ttl=300 \
   --type=A \
   --zone=videogenius-dns
 ```
 
-### 2️⃣ Registro CNAME para API
+### 📊 Resultado Esperado
 
-```bash
-# Criar CNAME para api.videogenius.com.br
-gcloud dns record-sets create api.videogenius.com.br. \
-  --rrdatas="video-genius-api-vch3lr5s3a-uc.a.run.app." \
-  --ttl=300 \
-  --type=CNAME \
-  --zone=videogenius-dns
 ```
-
-### 3️⃣ Registro CNAME para WWW (opcional)
-
-```bash
-# Criar CNAME para www
-gcloud dns record-sets create www.videogenius.com.br. \
-  --rrdatas="video-genius-api-vch3lr5s3a-uc.a.run.app." \
-  --ttl=300 \
-  --type=CNAME \
-  --zone=videogenius-dns
+videogenius.com.br.      A  300  34.143.74.2
+api.videogenius.com.br.  A  300  34.143.74.2
+www.videogenius.com.br.  A  300  34.143.74.2
 ```
 
 ---
@@ -158,15 +153,12 @@ gcloud dns managed-zones create videogenius-dns \
   --description="Main DNS zone for Video Genius" \
   --visibility=public
 
-# 2. Obter IP do Cloud Run
-echo "🔍 Obtendo IP do Cloud Run..."
-CLOUD_RUN_IP=$(gcloud run services describe video-genius-api \
-  --region us-central1 \
-  --format='value(status.loadBalancer.ingress[0].ipAddress)')
+# 2. IP DO CLOUD RUN (use este!)
+CLOUD_RUN_IP="34.143.74.2"
 
-echo "IP obtido: $CLOUD_RUN_IP"
+echo "🔍 IP do Cloud Run: $CLOUD_RUN_IP"
 
-# 3. Criar registros A e CNAME
+# 3. Criar registros A
 echo "📝 Adicionando registros DNS..."
 
 # Registro A (apex)
@@ -176,18 +168,18 @@ gcloud dns record-sets create videogenius.com.br. \
   --type=A \
   --zone=videogenius-dns
 
-# CNAME para API
+# Registro A para API
 gcloud dns record-sets create api.videogenius.com.br. \
-  --rrdatas="video-genius-api-vch3lr5s3a-uc.a.run.app." \
+  --rrdatas="$CLOUD_RUN_IP" \
   --ttl=300 \
-  --type=CNAME \
+  --type=A \
   --zone=videogenius-dns
 
-# CNAME para WWW
+# Registro A para WWW
 gcloud dns record-sets create www.videogenius.com.br. \
-  --rrdatas="video-genius-api-vch3lr5s3a-uc.a.run.app." \
+  --rrdatas="$CLOUD_RUN_IP" \
   --ttl=300 \
-  --type=CNAME \
+  --type=A \
   --zone=videogenius-dns
 
 # 4. Obter nameservers
@@ -254,7 +246,7 @@ https://www.whatsmydns.net/#A/videogenius.com.br
 ┌─────────────────────────────────────┐
 │   Registrador (Registro.br, etc)    │
 │   videogenius.com.br NS:            │
-│   ns-cloud-b1/b2/b3/b4              │
+│   ns-cloud-c1/c2/c3/c4              │
 └────────────┬────────────────────────┘
              │
              ▼
@@ -264,21 +256,27 @@ https://www.whatsmydns.net/#A/videogenius.com.br
 │   │ Zona: videogenius.com.br.    │   │
 │   ├──────────────────────────────┤   │
 │   │ videogenius.com.br.      A   │   │
-│   │  → 34.28.xxx.xxx             │   │
+│   │  → 34.143.74.2               │   │
 │   ├──────────────────────────────┤   │
-│   │ api.videogenius.com.br.  CNAME   │
-│   │  → video-genius-api...       │   │
+│   │ api.videogenius.com.br.  A   │   │
+│   │  → 34.143.74.2               │   │
 │   ├──────────────────────────────┤   │
-│   │ www.videogenius.com.br.  CNAME   │
-│   │  → video-genius-api...       │   │
+│   │ www.videogenius.com.br.  A   │   │
+│   │  → 34.143.74.2               │   │
 │   └──────────────────────────────┘   │
+└────────────┬─────────────────────────┘
+             │
+             ▼
+┌──────────────────────────────────────┐
+│   Google Load Balancer               │
+│   IP: 34.143.74.2                    │
 └────────────┬─────────────────────────┘
              │
              ▼
 ┌──────────────────────────────────────┐
 │   Cloud Run Service                  │
 │   video-genius-api                   │
-│   https://api.videogenius.com.br     │
+│   https://videogenius.com.br         │
 └──────────────────────────────────────┘
 ```
 
