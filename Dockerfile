@@ -24,9 +24,9 @@ WORKDIR /app
 # Production stage
 FROM base as production
 
-# Copy requirements first for better caching
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Copy production requirements (without dev tools)
+COPY requirements-prod.txt .
+RUN pip install --no-cache-dir -r requirements-prod.txt
 
 # Copy application code
 COPY backend/ ./backend/

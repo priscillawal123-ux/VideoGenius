@@ -1,0 +1,160 @@
+[0;34m[INFO][0m 🚀 Starting Video Genius production deployment...
+
+[0;34m[INFO][0m Checking prerequisites...
+[0;34m[INFO][0m Setting project to video-genius-prod-v1...
+Updated property [core/project].
+[0;32m[SUCCESS][0m Prerequisites check passed
+
+[0;34m[INFO][0m Setting up secrets in Google Secret Manager...
+[0;32m[SUCCESS][0m JWT secret key already exists
+[0;32m[SUCCESS][0m YouTube API key secret exists
+
+WARNING: Your config file at [/home/walland/.docker/config.json] contains these credential helper entries:
+
+{
+  "credHelpers": {
+    "gcr.io": "gcloud",
+    "us.gcr.io": "gcloud",
+    "eu.gcr.io": "gcloud",
+    "asia.gcr.io": "gcloud",
+    "staging-k8s.gcr.io": "gcloud",
+    "marketplace.gcr.io": "gcloud"
+  }
+}
+Adding credentials for: gcr.io
+gcloud credential helpers already registered correctly.
+#0 building with "video-genius-builder" instance using docker-container driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 1.42kB done
+#1 WARN: FromAsCasing: 'as' and 'FROM' keywords' casing do not match (line 2)
+#1 WARN: FromAsCasing: 'as' and 'FROM' keywords' casing do not match (line 25)
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/python:3.12-slim
+#2 DONE 1.3s
+
+#3 [internal] load .dockerignore
+#3 transferring context: 2B done
+#3 DONE 0.0s
+
+#4 [base 1/4] FROM docker.io/library/python:3.12-slim@sha256:dc9e92fcdc085ad86dda976f4cfc58856dba33a438a16db37ff00151b285c8ca
+#4 resolve docker.io/library/python:3.12-slim@sha256:dc9e92fcdc085ad86dda976f4cfc58856dba33a438a16db37ff00151b285c8ca 0.0s done
+#4 DONE 0.0s
+
+#5 [base 2/4] RUN apt-get update && apt-get install -y --no-install-recommends     ffmpeg     curl     && rm -rf /var/lib/apt/lists/*
+#5 CACHED
+
+#6 [base 3/4] RUN useradd -m -u 1000 appuser
+#6 CACHED
+
+#7 [base 4/4] WORKDIR /app
+#7 CACHED
+
+#8 [internal] load build context
+#8 transferring context: 7.07kB 0.0s done
+#8 DONE 0.0s
+
+#9 [production 1/4] COPY requirements-prod.txt .
+#9 DONE 0.0s
+
+#10 [production 2/4] RUN pip install --no-cache-dir -r requirements-prod.txt
+#10 2.037 Collecting fastapi==0.115.6 (from -r requirements-prod.txt (line 1))
+#10 2.084   Downloading fastapi-0.115.6-py3-none-any.whl.metadata (27 kB)
+#10 2.136 Collecting uvicorn==0.32.1 (from uvicorn[standard]==0.32.1->-r requirements-prod.txt (line 2))
+#10 2.143   Downloading uvicorn-0.32.1-py3-none-any.whl.metadata (6.6 kB)
+#10 2.316 Collecting pydantic==2.12.2 (from pydantic[email,settings]==2.12.2->-r requirements-prod.txt (line 3))
+#10 2.324   Downloading pydantic-2.12.2-py3-none-any.whl.metadata (85 kB)
+#10 2.369 Collecting pydantic-settings==2.6.1 (from -r requirements-prod.txt (line 4))
+#10 2.376   Downloading pydantic_settings-2.6.1-py3-none-any.whl.metadata (3.5 kB)
+#10 2.391 Collecting passlib==1.7.4 (from passlib[bcrypt]==1.7.4->-r requirements-prod.txt (line 5))
+#10 2.398   Downloading passlib-1.7.4-py2.py3-none-any.whl.metadata (1.7 kB)
+#10 2.420 Collecting PyJWT==2.10.1 (from -r requirements-prod.txt (line 6))
+#10 2.429   Downloading PyJWT-2.10.1-py3-none-any.whl.metadata (4.0 kB)
+#10 2.454 Collecting python-jose==3.3.0 (from python-jose[cryptography]==3.3.0->-r requirements-prod.txt (line 7))
+#10 2.462   Downloading python_jose-3.3.0-py2.py3-none-any.whl.metadata (5.4 kB)
+#10 2.486 Collecting python-multipart==0.0.17 (from -r requirements-prod.txt (line 8))
+#10 2.494   Downloading python_multipart-0.0.17-py3-none-any.whl.metadata (1.8 kB)
+#10 2.508 Collecting JSON-log-formatter==0.5.2 (from -r requirements-prod.txt (line 9))
+#10 2.515   Downloading JSON-log-formatter-0.5.2.tar.gz (5.5 kB)
+#10 2.525   Installing build dependencies: started
+#10 5.903   Installing build dependencies: finished with status 'done'
+#10 5.904   Getting requirements to build wheel: started
+#10 6.818   Getting requirements to build wheel: finished with status 'done'
+#10 6.820   Preparing metadata (pyproject.toml): started
+#10 7.750   Preparing metadata (pyproject.toml): finished with status 'done'
+#10 7.853 Collecting uvloop==0.20.0 (from -r requirements-prod.txt (line 10))
+#10 7.946   Downloading uvloop-0.20.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (4.9 kB)
+#10 8.009 Collecting google-cloud-bigquery==3.13.0 (from -r requirements-prod.txt (line 11))
+#10 8.017   Downloading google_cloud_bigquery-3.13.0-py2.py3-none-any.whl.metadata (8.5 kB)
+#10 8.082 Collecting google-cloud-storage==2.18.2 (from -r requirements-prod.txt (line 12))
+#10 8.090   Downloading google_cloud_storage-2.18.2-py2.py3-none-any.whl.metadata (9.1 kB)
+#10 8.143 Collecting google-cloud-aiplatform==1.60.0 (from -r requirements-prod.txt (line 13))
+#10 8.150   Downloading google_cloud_aiplatform-1.60.0-py2.py3-none-any.whl.metadata (31 kB)
+#10 8.290 Collecting google-cloud-secret-manager==2.20.0 (from -r requirements-prod.txt (line 14))
+#10 8.297   Downloading google_cloud_secret_manager-2.20.0-py2.py3-none-any.whl.metadata (5.2 kB)
+#10 8.324 Collecting google-cloud-tasks==2.16.2 (from -r requirements-prod.txt (line 15))
+#10 8.332   Downloading google_cloud_tasks-2.16.2-py2.py3-none-any.whl.metadata (5.3 kB)
+#10 8.401 Collecting google-auth==2.29.0 (from -r requirements-prod.txt (line 16))
+#10 8.407   Downloading google_auth-2.29.0-py2.py3-none-any.whl.metadata (4.7 kB)
+#10 8.445 Collecting cachetools==5.3.3 (from -r requirements-prod.txt (line 17))
+#10 8.452   Downloading cachetools-5.3.3-py3-none-any.whl.metadata (5.3 kB)
+#10 8.506 Collecting google-cloud-pubsub==2.21.1 (from -r requirements-prod.txt (line 18))
+#10 8.514   Downloading google_cloud_pubsub-2.21.1-py2.py3-none-any.whl.metadata (9.3 kB)
+#10 8.550 Collecting structlog==25.4.0 (from -r requirements-prod.txt (line 19))
+#10 8.559   Downloading structlog-25.4.0-py3-none-any.whl.metadata (7.6 kB)
+#10 8.581 Collecting gtts==2.5.3 (from -r requirements-prod.txt (line 20))
+#10 8.588   Downloading gTTS-2.5.3-py3-none-any.whl.metadata (4.1 kB)
+#10 8.612 Collecting moviepy==1.0.3 (from -r requirements-prod.txt (line 21))
+#10 8.621   Downloading moviepy-1.0.3.tar.gz (388 kB)
+#10 8.750   Installing build dependencies: started
+#10 12.36   Installing build dependencies: finished with status 'done'
+#10 12.36   Getting requirements to build wheel: started
+#10 13.24   Getting requirements to build wheel: finished with status 'done'
+#10 13.24   Preparing metadata (pyproject.toml): started
+#10 14.17   Preparing metadata (pyproject.toml): finished with status 'done'
+#10 14.43 Collecting pillow==10.4.0 (from -r requirements-prod.txt (line 22))
+#10 14.45   Downloading pillow-10.4.0-cp312-cp312-manylinux_2_28_x86_64.whl.metadata (9.2 kB)
+#10 14.49 Collecting starlette<0.42.0,>=0.40.0 (from fastapi==0.115.6->-r requirements-prod.txt (line 1))
+#10 14.50   Downloading starlette-0.41.3-py3-none-any.whl.metadata (6.0 kB)
+#10 14.58 Collecting typing-extensions>=4.8.0 (from fastapi==0.115.6->-r requirements-prod.txt (line 1))
+#10 14.58   Downloading typing_extensions-4.15.0-py3-none-any.whl.metadata (3.3 kB)
+#10 14.61 Collecting click>=7.0 (from uvicorn==0.32.1->uvicorn[standard]==0.32.1->-r requirements-prod.txt (line 2))
+#10 14.61   Downloading click-8.3.0-py3-none-any.whl.metadata (2.6 kB)
+#10 14.63 Collecting h11>=0.8 (from uvicorn==0.32.1->uvicorn[standard]==0.32.1->-r requirements-prod.txt (line 2))
+#10 14.64   Downloading h11-0.16.0-py3-none-any.whl.metadata (8.3 kB)
+#10 14.65 Collecting annotated-types>=0.6.0 (from pydantic==2.12.2->pydantic[email,settings]==2.12.2->-r requirements-prod.txt (line 3))
+#10 14.66   Downloading annotated_types-0.7.0-py3-none-any.whl.metadata (15 kB)
+#10 15.65 Collecting pydantic-core==2.41.4 (from pydantic==2.12.2->pydantic[email,settings]==2.12.2->-r requirements-prod.txt (line 3))
+#10 15.66   Downloading pydantic_core-2.41.4-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (7.3 kB)
+#10 15.68 Collecting typing-inspection>=0.4.2 (from pydantic==2.12.2->pydantic[email,settings]==2.12.2->-r requirements-prod.txt (line 3))
+#10 15.68   Downloading typing_inspection-0.4.2-py3-none-any.whl.metadata (2.6 kB)
+#10 15.76 Collecting python-dotenv>=0.21.0 (from pydantic-settings==2.6.1->-r requirements-prod.txt (line 4))
+#10 15.77   Downloading python_dotenv-1.1.1-py3-none-any.whl.metadata (24 kB)
+#10 15.79 Collecting ecdsa!=0.15 (from python-jose==3.3.0->python-jose[cryptography]==3.3.0->-r requirements-prod.txt (line 7))
+#10 15.80   Downloading ecdsa-0.19.1-py2.py3-none-any.whl.metadata (29 kB)
+#10 15.84 Collecting rsa (from python-jose==3.3.0->python-jose[cryptography]==3.3.0->-r requirements-prod.txt (line 7))
+#10 15.85   Downloading rsa-4.9.1-py3-none-any.whl.metadata (5.6 kB)
+#10 15.88 Collecting pyasn1 (from python-jose==3.3.0->python-jose[cryptography]==3.3.0->-r requirements-prod.txt (line 7))
+#10 15.89   Downloading pyasn1-0.6.1-py3-none-any.whl.metadata (8.4 kB)
+#10 16.60 Collecting grpcio<2.0dev,>=1.47.0 (from google-cloud-bigquery==3.13.0->-r requirements-prod.txt (line 11))
+#10 16.61   Downloading grpcio-1.76.0rc1-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (3.7 kB)
+#10 16.73 Collecting google-api-core!=2.0.*,!=2.1.*,!=2.2.*,!=2.3.0,<3.0.0dev,>=1.31.5 (from google-api-core[grpc]!=2.0.*,!=2.1.*,!=2.2.*,!=2.3.0,<3.0.0dev,>=1.31.5->google-cloud-bigquery==3.13.0->-r requirements-prod.txt (line 11))
+#10 16.73   Downloading google_api_core-2.26.0-py3-none-any.whl.metadata (3.2 kB)
+#10 16.77 Collecting proto-plus<2.0.0dev,>=1.15.0 (from google-cloud-bigquery==3.13.0->-r requirements-prod.txt (line 11))
+#10 16.77   Downloading proto_plus-1.26.1-py3-none-any.whl.metadata (2.2 kB)
+#10 16.80 Collecting google-cloud-core<3.0.0dev,>=1.6.0 (from google-cloud-bigquery==3.13.0->-r requirements-prod.txt (line 11))
+#10 16.81   Downloading google_cloud_core-2.4.3-py2.py3-none-any.whl.metadata (2.7 kB)
+#10 16.84 Collecting google-resumable-media<3.0dev,>=0.6.0 (from google-cloud-bigquery==3.13.0->-r requirements-prod.txt (line 11))
+#10 16.84   Downloading google_resumable_media-2.7.2-py2.py3-none-any.whl.metadata (2.2 kB)
+#10 16.87 Collecting packaging>=20.0.0 (from google-cloud-bigquery==3.13.0->-r requirements-prod.txt (line 11))
+#10 16.88   Downloading packaging-25.0-py3-none-any.whl.metadata (3.3 kB)
+#10 17.21 Collecting protobuf!=3.20.0,!=3.20.1,!=4.21.0,!=4.21.1,!=4.21.2,!=4.21.3,!=4.21.4,!=4.21.5,<5.0.0dev,>=3.19.5 (from google-cloud-bigquery==3.13.0->-r requirements-prod.txt (line 11))
+#10 17.22   Downloading protobuf-4.25.8-cp37-abi3-manylinux2014_x86_64.whl.metadata (541 bytes)
+#10 17.23 Collecting python-dateutil<3.0dev,>=2.7.2 (from google-cloud-bigquery==3.13.0->-r requirements-prod.txt (line 11))
+#10 17.24   Downloading python_dateutil-2.9.0.post0-py2.py3-none-any.whl.metadata (8.4 kB)
+#10 17.29 Collecting requests<3.0.0dev,>=2.21.0 (from google-cloud-bigquery==3.13.0->-r requirements-prod.txt (line 11))
+#10 17.30   Downloading requests-2.32.5-py3-none-any.whl.metadata (4.9 kB)
+#10 17.53 Collecting google-crc32c<2.0dev,>=1.0 (from google-cloud-storage==2.18.2->-r requirements-prod.txt (line 12))
+#10 17.53   Downloading google_crc32c-1.7.1-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (2.3 kB)
+#10 17.73 Collecting google-cloud-resource-manager<3.0.0dev,>=1.3.3 (from google-cloud-aiplatform==1.60.0->-r requirements-prod.txt (line 13))

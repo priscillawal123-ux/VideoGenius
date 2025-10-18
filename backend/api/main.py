@@ -8,7 +8,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.middleware.trustedhost import TrustedHostMiddleware
+# from fastapi.middleware.trustedhost import TrustedHostMiddleware
 
 from backend.api.routes.auth import router as auth_router
 from backend.api.routes.gcp import router as gcp_router
@@ -16,8 +16,8 @@ from backend.api.routes.videos import router as videos_router
 from backend.core.config import get_settings
 from backend.core.exception_handlers import add_exception_handlers
 from backend.core.logging import setup_logging
-from backend.core.monitoring import setup_monitoring
-from backend.core.rate_limiting import setup_rate_limiting
+# from backend.core.monitoring import setup_monitoring
+# from backend.core.rate_limiting import setup_rate_limiting
 
 # Setup logging
 setup_logging()
@@ -109,10 +109,10 @@ def create_application() -> FastAPI:
     # Add global exception handlers
     add_exception_handlers(app)
 
-    # Setup monitoring and tracing
-    setup_monitoring(app)
+    # Setup monitoring and tracing (disabled for Cloud Run)
+    # setup_monitoring(app)
 
-    # Setup rate limiting
+    # Setup rate limiting (disabled for Cloud Run)
     # setup_rate_limiting(app)
 
     # Include routers

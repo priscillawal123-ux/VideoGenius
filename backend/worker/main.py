@@ -8,7 +8,7 @@ from fastapi import FastAPI, HTTPException, status, Depends
 from pydantic import BaseModel
 
 from backend.core.config import get_settings
-from backend.core.monitoring import setup_monitoring
+# from backend.core.monitoring import setup_monitoring
 from backend.database.bigquery_client import BigQueryClient
 from backend.services.script_generator import ScriptGeneratorService
 from backend.services.video_generator import VideoGeneratorService
@@ -20,7 +20,7 @@ app = FastAPI(title="Video Generation Worker", version="1.0.0")
 settings = get_settings()
 
 # Setup monitoring
-setup_monitoring(app)
+# setup_monitoring(app)
 
 
 class TaskPayload(BaseModel):

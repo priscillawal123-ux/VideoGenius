@@ -67,24 +67,48 @@ check_prerequisites() {
 build_and_push_image() {
     log_info "Building Docker image..."
 
-    # Get current commit SHA for versioning
-    COMMIT_SHA=$(git rev-parse HEAD)
-    IMAGE_TAG="${IMAGE_NAME}:${COMMIT_SHA}"
+    # Get current commit SHA for versioning (first 7 chars)
+    COMMIT_SHA=$(git rev-parse --short HEAD 2>/dev/null || echo "latest")
+    
+    # Use gcr.io format for GCR with full registry path
+    IMAGE_REGISTRY="gcr.io"
+    IMAGE_TAG="${IMAGE_REGISTRY}/${PROJECT_ID}/${SERVICE_NAME}:${COMMIT_SHA}"
+    IMAGE_LATEST="${IMAGE_REGISTRY}/${PROJECT_ID}/${SERVICE_NAME}:latest"
 
-    # Build image
-    docker build -t "${IMAGE_TAG}" -t "${IMAGE_NAME}:latest" .
+    log_info "Building Docker image: ${IMAGE_TAG}"
 
-    # Authenticate Docker with GCR
-    log_info "Authenticating Docker with Google Container Registry..."
-    gcloud auth configure-docker --quiet
+    # Authenticate Docker with GCR first
+    log_info "Configuring Docker for GCR..."
+    gcloud auth configure-docker "${IMAGE_REGISTRY}" --quiet || {
+        log_error "Failed to configure Docker for GCR"
+        exit 1
+    }
 
-    # Push images
-    log_info "Pushing Docker image to GCR..."
-    docker push "${IMAGE_TAG}"
-    docker push "${IMAGE_NAME}:latest"
+    # Build image using docker buildx (faster and better caching)
+    log_info "Building Docker image with buildx (this may take a few minutes)..."
+    docker buildx build \
+        --push \
+        --tag "${IMAGE_TAG}" \
+        --tag "${IMAGE_LATEST}" \
+        --file Dockerfile \
+        --platform linux/amd64 \
+        . || {
+        log_error "Docker buildx build failed"
+        exit 1
+    }
 
-    log_success "Docker image built and pushed: ${IMAGE_TAG}"
+    log_success "Docker image built and pushed successfully to GCR"
 
+    # Verify image exists in GCR
+    log_info "Verifying image in GCR..."
+    gcloud container images describe "${IMAGE_TAG}" --project="${PROJECT_ID}" > /dev/null || {
+        log_error "Image not found in GCR after push"
+        exit 1
+    }
+
+    log_success "Image verified in GCR: ${IMAGE_TAG}"
+
+    # Echo the full image path with registry
     echo "${IMAGE_TAG}"
 }
 
